@@ -9,7 +9,7 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 
-class DefinitionSpec : ShouldSpec({
+class RunnerSpec : ShouldSpec({
 
     context("in a world") {
         val now = ZonedDateTime.of(2020, 10, 4, 14, 0, 0, 0, ZoneOffset.UTC)
@@ -18,11 +18,6 @@ class DefinitionSpec : ShouldSpec({
         val world = object : World {
             override fun getDate(): ZonedDateTime {
                 return now
-            }
-
-            override fun genGson(): Gson {
-                return GsonBuilder()
-                    .create()
             }
 
             override fun genChaos(): Number {
@@ -47,15 +42,13 @@ class DefinitionSpec : ShouldSpec({
                             world,
                             context,
                             experiment
-                        ) shouldBeLeft EvalError("Can only dive in objects. null is neither")
+                        ) shouldBeLeft EvalError("Can only dive in objects or arrays. [null] is neither")
                     }
                 }
 
                 context("context with the key to dive") {
                     should("dive and call the evaluator") {
-                        val contextJson = JsonObject()
-                        contextJson.addProperty("beta", "yes")
-                        val context = Context(contextJson)
+                        val context = Context(jsonObject("beta" to "yes"))
 
                         run(
                             world,
@@ -65,9 +58,7 @@ class DefinitionSpec : ShouldSpec({
                     }
 
                     should("valuate to a disabled") {
-                        val contextJson = JsonObject()
-                        contextJson.addProperty("beta", "no")
-                        val context = Context(contextJson)
+                        val context = Context(jsonObject("beta" to "no"))
 
                         run(
                             world,
@@ -75,6 +66,54 @@ class DefinitionSpec : ShouldSpec({
                             experiment
                         ) shouldBeRight emptyList()
                     }
+                }
+            }
+
+            context("bind of an array") {
+                val experiment = buildExperiment(
+                    Bind(
+                        Dive("2"),
+                        Equal(30)
+                    )
+                )
+
+                should("dive by position") {
+                    val context = Context(jsonArray(10, 20, 30))
+
+                    run(
+                        world,
+                        context,
+                        experiment
+                    ) shouldBeRight listOf(Variant("EXP001"))
+                }
+
+                should("fail if not an array") {
+                    val context = Context(jsonObject("beta" to "no"))
+
+                    run(
+                        world,
+                        context,
+                        experiment
+                    ) shouldBeLeft EvalError("[2] is not present in [{\"beta\":\"no\"}]. Can't dive")
+                }
+            }
+
+            context("dive of an object") {
+                val experiment = buildExperiment(
+                    Bind(
+                        Dive("foo"),
+                        Equal(30)
+                    )
+                )
+
+                should("fail to dive into an array") {
+                    val context = Context(jsonArray(10, 20, 30))
+
+                    run(
+                        world,
+                        context,
+                        experiment
+                    ) shouldBeLeft EvalError("Can only dive into arrays by a number. Got [foo]")
                 }
             }
 
@@ -258,6 +297,119 @@ class DefinitionSpec : ShouldSpec({
                 }
             }
 
+            context("experiment with size") {
+                context("checking the size") {
+                    val experiment = buildExperiment(
+                        Bind(
+                            Size,
+                            GreaterThan(2)
+                        )
+                    )
+
+                    context("of an array") {
+                        context("short") {
+                            val context = Context(jsonArray(1))
+
+                            should("not match") {
+                                run(
+                                    world,
+                                    context,
+                                    experiment
+                                ) shouldBeRight emptyList()
+                            }
+                        }
+
+                        context("long") {
+                            val context = Context(jsonArray(1, 2, 3))
+
+                            should("not match") {
+                                run(
+                                    world,
+                                    context,
+                                    experiment
+                                ) shouldBeRight listOf(experiment.name)
+                            }
+                        }
+                    }
+
+                    context("of an string") {
+                        context("short") {
+                            val context = Context(JsonPrimitive("h"))
+
+                            should("not match") {
+                                run(
+                                    world,
+                                    context,
+                                    experiment
+                                ) shouldBeRight emptyList()
+                            }
+                        }
+
+                        context("long") {
+                            val context = Context(JsonPrimitive("hello!"))
+
+                            should("not match") {
+                                run(
+                                    world,
+                                    context,
+                                    experiment
+                                ) shouldBeRight listOf(experiment.name)
+                            }
+                        }
+                    }
+
+                    context("of an object") {
+                        context("short") {
+                            val context = Context(jsonObject("a" to "1"))
+
+                            should("not match") {
+                                run(
+                                    world,
+                                    context,
+                                    experiment
+                                ) shouldBeRight emptyList()
+                            }
+                        }
+
+                        context("long") {
+                            val context = Context(jsonObject("a" to "1", "b" to "2", "c" to "3"))
+
+                            should("not match") {
+                                run(
+                                    world,
+                                    context,
+                                    experiment
+                                ) shouldBeRight listOf(experiment.name)
+                            }
+                        }
+                    }
+
+                    context("of null") {
+                        val context = Context(JsonNull.INSTANCE)
+
+                        should("not match") {
+                            run(
+                                world,
+                                context,
+                                experiment
+                            ) shouldBeRight emptyList()
+                        }
+                    }
+
+                    context("something else") {
+                        val context = Context(JsonPrimitive(true))
+
+                        should("fails to parse") {
+                            run(
+                                world,
+                                context,
+                                experiment
+                            ) shouldBeLeft EvalError("Can't get size for [true]")
+                        }
+                    }
+                }
+            }
+
             context("experiment with an random") {
                 val experiment = buildExperiment(
                     Bind(
@@ -281,7 +433,7 @@ class DefinitionSpec : ShouldSpec({
                 context("with a different context") {
                     val context = Context(JsonPrimitive("foo"))
 
-                    should("not match\"") {
+                    should("not match") {
                         run(
                             world,
                             context,
@@ -319,43 +471,10 @@ class DefinitionSpec : ShouldSpec({
                 }
             }
 
-            context("experiment with an id") {
-                context("a silly experiment") {
-                    val experiment = buildExperiment(
-                        Bind(
-                            Id,
-                            Equal("yes")
-                        )
-                    )
-
-                    should("match the same context") {
-                        run(
-                            world,
-                            Context(JsonPrimitive("yes")),
-                            experiment
-                        ) shouldBeRight listOf(experiment.name)
-                    }
-
-                    should("should not match other context") {
-                        run(
-                            world,
-                            Context(JsonPrimitive("no")),
-                            experiment
-                        ) shouldBeRight emptyList()
-                    }
-                }
-            }
-
             context("experiment with an compose") {
                 context("a compose of dives") {
                     val experiment = buildExperiment(
-                        Bind(
-                            Compose(
-                                Dive("foo"),
-                                Dive("bar")
-                            ),
-                            Equal("yes")
-                        )
+                        Bind(Dive("foo"), Bind(Dive("bar"), Equal("yes")))
                     )
 
                     context("an empty context") {
@@ -366,30 +485,25 @@ class DefinitionSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeLeft EvalError("Can only dive in objects. null is neither")
+                            ) shouldBeLeft EvalError("Can only dive in objects or arrays. [null] is neither")
                         }
                     }
 
                     context("a context with only the first layer of dive") {
-                        val contextJson = JsonObject()
-                        contextJson.addProperty("foo", "yes")
-                        val context = Context(contextJson)
+                        val context = Context(jsonObject("foo" to "yes"))
 
                         should("fail to dive deep") {
                             run(
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeLeft EvalError("Can only dive in objects. \"yes\" is neither")
+                            ) shouldBeLeft EvalError("Can only dive in objects or arrays. [\"yes\"] is neither")
                         }
                     }
 
                     context("a context with all the layers of dive") {
-                        val innerObject = JsonObject()
-                        innerObject.addProperty("bar", "yes")
-
                         val contextJson = JsonObject()
-                        contextJson.add("foo", innerObject)
+                        contextJson.add("foo", jsonObject("bar" to "yes"))
                         val context = Context(contextJson)
 
                         should("match the deep level") {
@@ -398,6 +512,111 @@ class DefinitionSpec : ShouldSpec({
                                 context,
                                 experiment
                             ) shouldBeRight listOf(experiment.name)
+                        }
+                    }
+                }
+            }
+
+            context("contexts with an any") {
+                val experiment = buildExperiment(
+                    Any(
+                        Equal(3)
+                    )
+                )
+
+                context("an array context") {
+                    context("at least one matches") {
+                        val context = Context(
+                            jsonArray(3, 2)
+                        )
+
+                        should("match") {
+                            run(
+                                world,
+                                context,
+                                experiment
+                            ) shouldBeRight listOf(experiment.name)
+                        }
+                    }
+
+                    context("none matches") {
+                        val context = Context(
+                            jsonArray(2)
+                        )
+
+                        should("not match") {
+                            run(
+                                world,
+                                context,
+                                experiment
+                            ) shouldBeRight emptyList()
+                        }
+                    }
+
+                    context("empty list") {
+                        val context = Context(JsonArray())
+
+                        should("not match") {
+                            run(
+                                world,
+                                context,
+                                experiment
+                            ) shouldBeRight emptyList()
+                        }
+                    }
+                }
+
+                context("not an array") {
+                    context("fails to parse") {
+
+                        should("match") {
+                            run(
+                                world,
+                                Context(JsonPrimitive(3)),
+                                experiment
+                            ) shouldBeLeft EvalError("Can't \$any a non array. Got [3]")
+                        }
+                    }
+                }
+
+                xcontext("an object context") {
+                    context("at least one matches") {
+                        val context = Context(
+                            jsonObject("foo" to "3")
+                        )
+
+                        should("match") {
+                            run(
+                                world,
+                                context,
+                                experiment
+                            ) shouldBeRight listOf(experiment.name)
+                        }
+                    }
+
+                    context("none matches") {
+                        val context = Context(
+                            jsonArray(2)
+                        )
+
+                        should("not match") {
+                            run(
+                                world,
+                                context,
+                                experiment
+                            ) shouldBeRight emptyList()
+                        }
+                    }
+
+                    context("empty list") {
+                        val context = Context(JsonArray())
+
+                        should("not match") {
+                            run(
+                                world,
+                                context,
+                                experiment
+                            ) shouldBeRight emptyList()
                         }
                     }
                 }
@@ -483,6 +702,20 @@ class DefinitionSpec : ShouldSpec({
         }
     }
 })
+
+fun jsonObject(vararg pairs: Pair<String, String>): JsonElement {
+    val o = JsonObject()
+    for (p in pairs)
+        o.addProperty(p.first, p.second)
+    return o
+}
+
+fun jsonArray(vararg elems: Number): JsonArray {
+    val a = JsonArray()
+    for (el in elems)
+        a.add(el)
+    return a
+}
 
 private fun buildExperiment(evaluator: Evaluator): Experiment {
     return Experiment(

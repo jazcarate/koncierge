@@ -11,7 +11,7 @@ We want to have the experiment's microservice be somewhat agnostic of the rest o
 so whoever consumes the information must provide enough information about the user for us to choose what experiments
 they should be part of.
 
-We found that knowing if a user participates in an experiment, and it figure out what variant they fall into are really
+We found that knowing if a user participates in an experiment, and it figures out what variant they fall into are really
 similar concepts, so we came up with the idea of having _"variants all the way"_. So an experiment is really just a variant
 on the world. The same syntax can apply to narrow down the focus of the experiment. A good example of this can be found
 in the [Variant all the way](#variant-all-the-way) example.
@@ -31,7 +31,7 @@ A function that takes the [parsed](#parser) definition, the context provided, an
 and outputs the list of experiments (and variants) the context is part of
 
 ### Context validation
-We validate the context in a interpreter-agnostic way.
+We validate the context in an interpreter-agnostic way.
 This means that even though semantically, some rules we might never call (see the [Uncalled for](#uncalled-for) example),
 the context will still need to match every possible child rule.
 
@@ -52,6 +52,7 @@ Think of them as `:: Context -> Context`.
 | `$rand`            | Chooses a value at random between 0 and 1. Uses the current context as seed[*](#randomness)             | `{ "$rand": { "$gt": 0.5 } }`                    |
 | `$chaos`           | Chooses a value at random between 0 and 1. This, compared to ☝️does not use the current context       | `{ "$chaos": { "$gt": 0.5 } }`                    |
 | `$date`            | Changes the context with the current date. Useful when convincing with other comparison operator        | `{ "$date": { "$gt":  "2020-01-01 15:00:00" } }` |
+| `$size`            | Changes the context to the size of the current context. This can be an array length, a string length or an object number of fields, or `0` if `null` | `{ "$size": { "$gt":  "1" } }` |
 
 #### Evaluators
 These operations yield weather the context is or not par of the variant.
@@ -59,9 +60,10 @@ Think of them as `:: Context -> Bool`.
 
 | Name               | Description                                                                                             | Example                                          |
 |--------------------|---------------------------------------------------------------------------------------------------------| -------------------------------------------------|
-| `$lt`, `$gt`       | Will be enabled if the context if less than (`lt`) or greater than (`gt`) the value provided            | `{ "$gt": 0.5 }`                                 |
+| `$lt`, `$gt`       | Will be enabled if the context if less than (`lt`) or greater than (`gt`) the value provided [**](#date)| `{ "$gt": 0.5 }`                                 |
 | `$or`              | Will be enabled if any of the sub-operators are enabled                                                 | `{ "$or": { "beta": "yes", "$rand" : 0.5 } }`    |
-| `$always`          | Will always evaluate to its (boolean) value, regardless of the context                                  | `{ "$always":  true }`                           |
+| `$always`          | Will always evaluate to its (boolean) value, regardless of the context                                  | `{ "$always": true }`                            |
+| `$any`, `$all`     | Will be enabled if (any/all) the elements in the context (which should be an array) are enabled         | `{ "$any": { "$gt": 0.5 } }`                     |
 
 Where a context changer can be nested, evaluators need to be terminal.
 
@@ -74,7 +76,7 @@ Everyone is participating in the experiment`EXP001`, and only half of the users 
 ```json
 {
     "EXP001": {
-        "children": [
+        "$children": [
             { "participating": { "$rand": { "$gt": 0.5 } } },
             { "control": { "$always":  true } }
         ]
@@ -88,8 +90,8 @@ The output for half the user base will be: `EXP001.participating` and `EXP001.co
 ```json
 {
     "EXP001": {
-        "$date": { "$gt":  "2020-01-01 15:00:00" },
-        "children": [
+        "$date": { "$gt": "2020-01-01 15:00:00" },
+        "$children": [
             { "participating": { "$rand": { "$gt": 0.5 } } },
             { "control": { "$always":  true } }
         ]
@@ -103,7 +105,7 @@ The output will be the same as the [simple](#simple) example, but only if it is 
 ```json
 {
     "EXP001": {
-        "children": [
+        "$children": [
             { "never": { "$always":  false } }
         ]
     }
@@ -126,7 +128,7 @@ The output will be `EXP001` if the context has a key `beta` as `yes` **and** is 
 ```json
 {
    "EXP001": {
-        "children": [
+        "$children": [
             { "control": { "$always":  true } },
             { "participating": { "$rand": { "$gt": 0.5 } } }
         ]
@@ -139,8 +141,20 @@ This will **always** output `EXP001.control`, as we parse children rules sequent
 ### More examples
 You can check out the `/test` folder for more examples and edge cases.
 
-## Randomness
-`$rand` and `$chaos` might look similar; but they differ on the seed for its randomness.
+## Extras
+### Date
+Both `$gt` and `$lt` only work with numbers, so dates will be compared by their epoch second.
+The parser can interpret some date formats (read more about the date formats [here](https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html)).
+Formats with no timezone, we choose the default system timezone. This is not recommended.
+
+| Format | Example | Notes |
+|--------|---------|-----|
+| `yyyy-MM-dd` | 2020-10-05 | The time is at 00:00 from the system's timezone |
+| `EEE MMM dd yyyy HH:mm:ss 'GMT'Z (z)` | Tue Oct 06 2020 00:30:00 GMT+0200 (Central European Summer Time) | JavaScript's default `Date` format |
+| `yyyy-MM-dd'T'HH:mm:ss.SSSZ` | 2020-10-05T22:20:00.000+0200 | **Recommended** [ISO 8601-2:2019](https://www.iso.org/standard/70908.html) standard |
+
+### Randomness
+Even though `$rand` and `$chaos` might look similar; they differ on the seed for its randomness.
 With `$rand`, any random value generated with the same context, will be the same output.
 
 For this reason, most og the times you'll want to narrow down the context before applying `$rand`.
@@ -170,4 +184,3 @@ In contrast, `$chaos` will generate a new value each time, so there is no guaran
 
 ### TODO
 1. Escape the `$` to be able to match to `$` keys, and the `.` in keys to match not-nested keys with `.`
-1. Allow to _dive_ into arrays

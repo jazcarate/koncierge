@@ -34,7 +34,7 @@ fun parseAll(elem: JsonElement): Either<ParseError, List<Experiment>> {
         .fix().map { it.fix() }
 }
 
-fun evaluator(def: JsonObject): Either<ParseError, Evaluator> {
+private fun evaluator(def: JsonObject): Either<ParseError, Evaluator> {
     if (def.size() == 0)
         return Always(true).right()
 

@@ -1,6 +1,9 @@
 package ar.com.florius.koncierge
 
-import com.google.gson.*
+import com.google.gson.JsonArray
+import com.google.gson.JsonNull
+import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.ShouldSpec
@@ -702,25 +705,3 @@ class RunnerSpec : ShouldSpec({
         }
     }
 })
-
-fun jsonObject(vararg pairs: Pair<String, String>): JsonElement {
-    val o = JsonObject()
-    for (p in pairs)
-        o.addProperty(p.first, p.second)
-    return o
-}
-
-fun jsonArray(vararg elems: Number): JsonArray {
-    val a = JsonArray()
-    for (el in elems)
-        a.add(el)
-    return a
-}
-
-private fun buildExperiment(evaluator: Evaluator): Experiment {
-    return Experiment(
-        Variant("EXP001"),
-        evaluator,
-        emptyList()
-    )
-}

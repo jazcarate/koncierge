@@ -48,7 +48,7 @@ private fun evaluate(world: World, context: Context, condition: Evaluator): Eith
     }
 }
 
-fun list(
+private fun list(
     world: World,
     context: Context,
     eval: Evaluator,
@@ -107,7 +107,7 @@ private fun compare(context: Context, cmp: (Number) -> Boolean): Either<EvalErro
     }
 }
 
-fun size(element: JsonElement): Either<String, Number> {
+private fun size(element: JsonElement): Either<String, Number> {
     if (element.isJsonObject)
         return element.asJsonObject.size().right()
     if (element.isJsonArray)

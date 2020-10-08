@@ -1,4 +1,4 @@
-package ar.com.florius.koncierge
+package ar.com.florius.koncierge.internal
 
 import com.google.gson.JsonPrimitive
 import com.google.gson.internal.LazilyParsedNumber
@@ -453,6 +453,18 @@ class ParserSpec : ShouldSpec({
                     Experiment(
                         Variant("foo"),
                         Equal(jsonObject("biz" to "3")),
+                        emptyList()
+                    )
+                )
+            }
+        }
+
+        context("a evaluation of not") {
+            should("parse the evaluation") {
+                parseAll("{ foo: { \$not: { \$eq: 'yes' } } }") shouldBeRight listOf(
+                    Experiment(
+                        Variant("foo"),
+                        Not(Equal(JsonPrimitive("yes"))),
                         emptyList()
                     )
                 )

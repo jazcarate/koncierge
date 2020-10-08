@@ -1,12 +1,9 @@
-package ar.com.florius.koncierge
+package ar.com.florius.koncierge.internal
 
 import arrow.core.*
-import arrow.core.computations.either
 import arrow.core.extensions.either.applicative.applicative
-import arrow.core.extensions.either.foldable.toList
+import arrow.core.extensions.list.monadFilter.filterMap
 import arrow.core.extensions.list.traverse.traverse
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import com.google.gson.internal.LazilyParsedNumber
@@ -14,24 +11,23 @@ import kotlin.math.absoluteValue
 
 inline class EvalError(val s: String)
 
-fun run(world: World, context: Context, experiment: Experiment): Either<EvalError, List<Variant>> {
-    return either.eager {
-        val one = activeOne(world, context, experiment).bind()
-        val children =
-            experiment.children.map { activeOne(world, context, it) }.traverse(Either.applicative(), ::identity)
-                .fix().bind().fix()
-        val selected = children.firstOrNull { it.isRight() } ?: Unit.left()
-        one.fold({ emptyList() }, { listOf(it) + selected.toList() })
-    }
+fun run(world: World, context: Context, experiment: Experiment): List<Variant> {
+    val one = activeOne(world, context, experiment)
+    val selected =
+        experiment.children
+            .map { activeOne(world, context, it) }
+            .filterMap { it.fold({ Option.empty() }, { Option.just(it) }) }
+            .firstOrNull()
+    return one.fold({ emptyList() }, { listOf(it) }) + (selected?.let { listOf(it) } ?: emptyList())
 }
 
 private fun activeOne(
     world: World,
     context: Context,
     experiment: Experiment
-): Either<EvalError, Either<Unit, Variant>> {
+): Either<EvalError, Variant> {
     return evaluate(world, context, experiment.condition)
-        .map { Either.conditionally(it, { Unit }, { experiment.name }) }
+        .flatMap { Either.conditionally(it, { EvalError("Did not match") }, { experiment.name }) }
 }
 
 private fun evaluate(world: World, context: Context, condition: Evaluator): Either<EvalError, Boolean> {
@@ -39,6 +35,7 @@ private fun evaluate(world: World, context: Context, condition: Evaluator): Eith
         is LessThan -> compare(context) { a -> condition.x > a }
         is GreaterThan -> compare(context) { a -> condition.x < a }
         is Equal -> (gson().toJsonTree(condition.x) == context.element).right()
+        is Not -> evaluate(world, context, condition.inner).map { it.not() }
         is Always -> condition.value.right()
         is And -> many(world, context, condition.evals, ::and)
         is Or -> many(world, context, condition.evals, ::or)
@@ -81,18 +78,15 @@ private fun change(world: World, cc: ContextChanger, context: Context): Either<E
         is Dive -> dive(cc.key, context.element).map(::Context).mapLeft(::EvalError)
         is Date -> Context(
             JsonPrimitive(
-                world.getDate().toEpochSecond()
+                world.getDate.invoke(Unit).toEpochSecond()
             )
         ).right()
         is Random -> context.fmap { JsonPrimitive(hash(it)) }.right()
-        is Chaos -> Context(JsonPrimitive(world.genChaos())).right()
+        is Chaos -> Context(JsonPrimitive(world.genChaos.invoke(Unit))).right()
         is Size -> size(context.element).map { Context(JsonPrimitive(it)) }.mapLeft(::EvalError)
     }
 }
 
-private fun gson(): Gson {
-    return GsonBuilder().create()
-}
 
 private fun compare(context: Context, cmp: (Number) -> Boolean): Either<EvalError, Boolean> {
     return if (context.element.isJsonPrimitive) {

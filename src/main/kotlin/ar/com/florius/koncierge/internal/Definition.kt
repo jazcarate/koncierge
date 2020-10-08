@@ -1,4 +1,4 @@
-package ar.com.florius.koncierge
+package ar.com.florius.koncierge.internal
 
 import com.google.gson.JsonElement
 
@@ -36,5 +36,6 @@ data class And(val evals: List<Evaluator>) : Evaluator()
 data class Or(val evals: List<Evaluator>) : Evaluator()
 data class Any(val eval: Evaluator) : Evaluator()
 data class All(val eval: Evaluator) : Evaluator()
+data class Not(val inner: Evaluator) : Evaluator()
 
 data class Bind(val cc: ContextChanger, val eval: Evaluator) : Evaluator()

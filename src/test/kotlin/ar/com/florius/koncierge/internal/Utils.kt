@@ -1,4 +1,4 @@
-package ar.com.florius.koncierge
+package ar.com.florius.koncierge.internal
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement

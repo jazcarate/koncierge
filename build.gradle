@@ -8,9 +8,16 @@ version '1.0-SNAPSHOT'
 //noinspection GroovyUnusedAssignment
 sourceCompatibility = 1.8
 
-repositories {
-    mavenCentral()
+allprojects {
+    repositories {
+        jcenter()
+    }
 }
+
+subprojects {
+    version = '1.0'
+}
+
 
 test {
     useJUnitPlatform()

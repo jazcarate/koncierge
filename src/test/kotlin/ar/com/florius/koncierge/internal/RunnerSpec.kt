@@ -1,11 +1,9 @@
-package ar.com.florius.koncierge
+package ar.com.florius.koncierge.internal
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import java.time.ZoneOffset
@@ -16,16 +14,11 @@ class RunnerSpec : ShouldSpec({
 
     context("in a world") {
         val now = ZonedDateTime.of(2020, 10, 4, 14, 0, 0, 0, ZoneOffset.UTC)
-        var chaos = 4 // chosen by fair dice roll.
+        var chaos = 0.4F // chosen by fair dice roll.
 
         val world = object : World {
-            override fun getDate(): ZonedDateTime {
-                return now
-            }
-
-            override fun genChaos(): Number {
-                return chaos
-            }
+            override var getDate: (Unit) -> ZonedDateTime = { now }
+            override var genChaos: (Unit) -> Float = { chaos }
         }
 
         context("with no children") {
@@ -45,7 +38,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             context,
                             experiment
-                        ) shouldBeLeft EvalError("Can only dive in objects or arrays. [null] is neither")
+                        ) shouldBe emptyList()
                     }
                 }
 
@@ -57,7 +50,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             context,
                             experiment
-                        ) shouldBeRight listOf(Variant("EXP001"))
+                        ) shouldBe listOf(Variant("EXP001"))
                     }
 
                     should("valuate to a disabled") {
@@ -67,7 +60,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             context,
                             experiment
-                        ) shouldBeRight emptyList()
+                        ) shouldBe emptyList()
                     }
                 }
             }
@@ -87,7 +80,7 @@ class RunnerSpec : ShouldSpec({
                         world,
                         context,
                         experiment
-                    ) shouldBeRight listOf(Variant("EXP001"))
+                    ) shouldBe listOf(Variant("EXP001"))
                 }
 
                 should("fail if not an array") {
@@ -97,7 +90,7 @@ class RunnerSpec : ShouldSpec({
                         world,
                         context,
                         experiment
-                    ) shouldBeLeft EvalError("[2] is not present in [{\"beta\":\"no\"}]. Can't dive")
+                    ) shouldBe emptyList()
                 }
             }
 
@@ -116,7 +109,7 @@ class RunnerSpec : ShouldSpec({
                         world,
                         context,
                         experiment
-                    ) shouldBeLeft EvalError("Can only dive into arrays by a number. Got [foo]")
+                    ) shouldBe emptyList()
                 }
             }
 
@@ -134,7 +127,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight emptyList()
+                        ) shouldBe emptyList()
                     }
                 }
 
@@ -151,7 +144,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight listOf(Variant("EXP001"))
+                        ) shouldBe listOf(Variant("EXP001"))
                     }
                 }
 
@@ -168,7 +161,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight listOf(Variant("EXP001"))
+                        ) shouldBe listOf(Variant("EXP001"))
                     }
                 }
 
@@ -185,7 +178,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight emptyList()
+                        ) shouldBe emptyList()
                     }
                 }
             }
@@ -201,7 +194,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight listOf(experiment.name)
+                        ) shouldBe listOf(experiment.name)
                     }
                 }
 
@@ -215,7 +208,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight emptyList()
+                        ) shouldBe emptyList()
                     }
                 }
             }
@@ -236,7 +229,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight listOf(experiment.name)
+                        ) shouldBe listOf(experiment.name)
                     }
                 }
 
@@ -255,7 +248,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight emptyList()
+                        ) shouldBe emptyList()
                     }
                 }
             }
@@ -276,7 +269,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight emptyList()
+                        ) shouldBe emptyList()
                     }
                 }
 
@@ -295,7 +288,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             Context(JsonNull.INSTANCE),
                             experiment
-                        ) shouldBeRight listOf(experiment.name)
+                        ) shouldBe listOf(experiment.name)
                     }
                 }
             }
@@ -318,7 +311,7 @@ class RunnerSpec : ShouldSpec({
                                     world,
                                     context,
                                     experiment
-                                ) shouldBeRight emptyList()
+                                ) shouldBe emptyList()
                             }
                         }
 
@@ -330,7 +323,7 @@ class RunnerSpec : ShouldSpec({
                                     world,
                                     context,
                                     experiment
-                                ) shouldBeRight listOf(experiment.name)
+                                ) shouldBe listOf(experiment.name)
                             }
                         }
                     }
@@ -344,7 +337,7 @@ class RunnerSpec : ShouldSpec({
                                     world,
                                     context,
                                     experiment
-                                ) shouldBeRight emptyList()
+                                ) shouldBe emptyList()
                             }
                         }
 
@@ -356,7 +349,7 @@ class RunnerSpec : ShouldSpec({
                                     world,
                                     context,
                                     experiment
-                                ) shouldBeRight listOf(experiment.name)
+                                ) shouldBe listOf(experiment.name)
                             }
                         }
                     }
@@ -370,7 +363,7 @@ class RunnerSpec : ShouldSpec({
                                     world,
                                     context,
                                     experiment
-                                ) shouldBeRight emptyList()
+                                ) shouldBe emptyList()
                             }
                         }
 
@@ -382,7 +375,7 @@ class RunnerSpec : ShouldSpec({
                                     world,
                                     context,
                                     experiment
-                                ) shouldBeRight listOf(experiment.name)
+                                ) shouldBe listOf(experiment.name)
                             }
                         }
                     }
@@ -395,7 +388,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeRight emptyList()
+                            ) shouldBe emptyList()
                         }
                     }
 
@@ -407,7 +400,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeLeft EvalError("Can't get size for [true]")
+                            ) shouldBe emptyList()
                         }
                     }
                 }
@@ -429,7 +422,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             context,
                             experiment
-                        ) shouldBeRight listOf(experiment.name)
+                        ) shouldBe listOf(experiment.name)
                     }
                 }
 
@@ -441,7 +434,7 @@ class RunnerSpec : ShouldSpec({
                             world,
                             context,
                             experiment
-                        ) shouldBeRight emptyList()
+                        ) shouldBe emptyList()
                     }
                 }
 
@@ -449,7 +442,7 @@ class RunnerSpec : ShouldSpec({
                     val res1 = run(world, Context(JsonNull.INSTANCE), experiment)
                     val res2 = run(world, Context(JsonNull.INSTANCE), experiment)
 
-                    res1 shouldBeRight listOf(experiment.name)
+                    res1 shouldBe listOf(experiment.name)
                     res1 shouldBe res2
                 }
             }
@@ -463,14 +456,32 @@ class RunnerSpec : ShouldSpec({
                 )
 
                 should("distribute variants") {
-                    chaos = 1
+                    chaos = 1.0F
                     val res1 = run(world, Context(JsonNull.INSTANCE), experiment)
-                    chaos = 0
+                    chaos = 0.0F
                     val res2 = run(world, Context(JsonNull.INSTANCE), experiment)
 
 
-                    res1 shouldBeRight listOf(experiment.name)
-                    res2 shouldBeRight emptyList()
+                    res1 shouldBe listOf(experiment.name)
+                    res2 shouldBe emptyList()
+                }
+            }
+
+            context("experiment with an not") {
+                val experiment = buildExperiment(
+                    Not(Equal("yes"))
+                )
+
+                should("negates the predicate, matching") {
+                    run(
+                        world, Context(JsonNull.INSTANCE), experiment
+                    ) shouldBe listOf(experiment.name)
+                }
+
+                should("negates the predicate, not matching") {
+                    run(
+                        world, Context(JsonPrimitive("yes")), experiment
+                    ) shouldBe emptyList()
                 }
             }
 
@@ -488,7 +499,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeLeft EvalError("Can only dive in objects or arrays. [null] is neither")
+                            ) shouldBe emptyList()
                         }
                     }
 
@@ -500,7 +511,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeLeft EvalError("Can only dive in objects or arrays. [\"yes\"] is neither")
+                            ) shouldBe emptyList()
                         }
                     }
 
@@ -514,7 +525,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeRight listOf(experiment.name)
+                            ) shouldBe listOf(experiment.name)
                         }
                     }
                 }
@@ -538,7 +549,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeRight listOf(experiment.name)
+                            ) shouldBe listOf(experiment.name)
                         }
                     }
 
@@ -552,7 +563,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeRight emptyList()
+                            ) shouldBe emptyList()
                         }
                     }
 
@@ -564,7 +575,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeRight emptyList()
+                            ) shouldBe emptyList()
                         }
                     }
                 }
@@ -577,7 +588,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 Context(JsonPrimitive(3)),
                                 experiment
-                            ) shouldBeLeft EvalError("Can't \$any a non array. Got [3]")
+                            ) shouldBe emptyList()
                         }
                     }
                 }
@@ -593,7 +604,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeRight listOf(experiment.name)
+                            ) shouldBe listOf(experiment.name)
                         }
                     }
 
@@ -607,7 +618,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeRight emptyList()
+                            ) shouldBe emptyList()
                         }
                     }
 
@@ -619,7 +630,7 @@ class RunnerSpec : ShouldSpec({
                                 world,
                                 context,
                                 experiment
-                            ) shouldBeRight emptyList()
+                            ) shouldBe emptyList()
                         }
                     }
                 }
@@ -650,7 +661,7 @@ class RunnerSpec : ShouldSpec({
                         world,
                         Context(JsonNull.INSTANCE),
                         experiment
-                    ) shouldBeRight listOf(experiment.name, matchingVariant.name)
+                    ) shouldBe listOf(experiment.name, matchingVariant.name)
                 }
             }
 
@@ -677,7 +688,7 @@ class RunnerSpec : ShouldSpec({
                         world,
                         Context(JsonNull.INSTANCE),
                         experiment
-                    ) shouldBeRight listOf(experiment.name, firstMatchingVariant.name)
+                    ) shouldBe listOf(experiment.name, firstMatchingVariant.name)
                 }
             }
 
@@ -699,7 +710,7 @@ class RunnerSpec : ShouldSpec({
                         world,
                         Context(JsonNull.INSTANCE),
                         experiment
-                    ) shouldBeRight listOf(experiment.name)
+                    ) shouldBe listOf(experiment.name)
                 }
             }
         }

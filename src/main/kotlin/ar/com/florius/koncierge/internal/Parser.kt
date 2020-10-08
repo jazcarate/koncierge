@@ -1,4 +1,4 @@
-package ar.com.florius.koncierge
+package ar.com.florius.koncierge.internal
 
 import arrow.core.*
 import arrow.core.computations.either
@@ -81,6 +81,7 @@ private fun evaluatorOne(key: String, element: JsonElement): Either<ParseError, 
         "\$lt" -> compare(element, ::LessThan)
         "\$gt" -> compare(element, ::GreaterThan)
         "\$eq" -> Equal(element).right()
+        "\$not" -> toObject(element).flatMap(::evaluator).map(::Not)
         "\$always" -> always(element)
         "\$and" -> many(element, ::And)
         "\$or" -> many(element, ::Or)

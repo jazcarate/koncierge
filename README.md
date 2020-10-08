@@ -53,6 +53,7 @@ Think of them as `:: Context -> Context`.
 | `$chaos`           | Chooses a value at random between 0 and 1. This, compared to ☝️does not use the current context       | `{ "$chaos": { "$gt": 0.5 } }`                    |
 | `$date`            | Changes the context with the current date. Useful when convincing with other comparison operator        | `{ "$date": { "$gt":  "2020-01-01 15:00:00" } }` |
 | `$size`            | Changes the context to the size of the current context. This can be an array length, a string length or an object number of fields, or `0` if `null` | `{ "$size": { "$gt":  "1" } }` |
+| `$not`             | Negates the context.                                                                                    | `{ "$not": { "$gt":  "1" } }` |
 
 #### Evaluators
 These operations yield weather the context is or not par of the variant.
@@ -62,7 +63,7 @@ Think of them as `:: Context -> Bool`.
 |--------------------|---------------------------------------------------------------------------------------------------------| -------------------------------------------------|
 | `$lt`, `$gt`       | Will be enabled if the context if less than (`lt`) or greater than (`gt`) the value provided [**](#date)| `{ "$gt": 0.5 }`                                 |
 | `$or`              | Will be enabled if any of the sub-operators are enabled                                                 | `{ "$or": { "beta": "yes", "$rand" : 0.5 } }`    |
-| `$always`          | Will always evaluate to its (boolean) value, regardless of the context                                  | `{ "$always": true }`                            |
+| `$always`          | Will always evaluate to its (boolean) value, regardless of the context. See the [exists](#exists) example| `{ "$always": true }`                            |
 | `$any`, `$all`     | Will be enabled if (any/all) the elements in the context (which should be an array) are enabled         | `{ "$any": { "$gt": 0.5 } }`                     |
 
 Where a context changer can be nested, evaluators need to be terminal.
@@ -76,10 +77,10 @@ Everyone is participating in the experiment`EXP001`, and only half of the users 
 ```json
 {
     "EXP001": {
-        "$children": [
-            { "participating": { "$rand": { "$gt": 0.5 } } },
-            { "control": { "$always":  true } }
-        ]
+        "$children": {
+            "participating": { "$rand": { "$gt": 0.5 } },
+            "control": { "$always":  true }
+        }
     }
 }
 ```
@@ -91,10 +92,10 @@ The output for half the user base will be: `EXP001.participating` and `EXP001.co
 {
     "EXP001": {
         "$date": { "$gt": "2020-01-01 15:00:00" },
-        "$children": [
-            { "participating": { "$rand": { "$gt": 0.5 } } },
-            { "control": { "$always":  true } }
-        ]
+        "$children": {
+            "participating": { "$rand": { "$gt": 0.5 } },
+            "control": { "$always":  true }
+        }
     }
 }
 ```
@@ -105,13 +106,26 @@ The output will be the same as the [simple](#simple) example, but only if it is 
 ```json
 {
     "EXP001": {
-        "$children": [
-            { "never": { "$always":  false } }
-        ]
+        "$children": {
+          "never": { "$always":  false }
+        }
     }
 }
 ```
 The output will be `EXP001` even if it has no active child.
+```json
+{
+    "EXP001": {
+        "beta": {
+          "$always":  true,
+          "$not": null
+        }
+    }
+}
+```
+The output will be `EXP001` if the context has a key `beta`, and it is not `null`.
+
+### Exists
 
 ### And
 ```json
@@ -128,10 +142,10 @@ The output will be `EXP001` if the context has a key `beta` as `yes` **and** is 
 ```json
 {
    "EXP001": {
-        "$children": [
-            { "control": { "$always":  true } },
-            { "participating": { "$rand": { "$gt": 0.5 } } }
-        ]
+        "$children": {
+            "control": { "$always":  true },
+            "participating": { "$rand": { "$gt": 0.5 } }
+        }
     }
 }
 ```

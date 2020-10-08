@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<body lang="en">
+
+<form onsubmit="return runEval(event);" method="post" action="/api/eval">
+    <textarea id="experiment">{{experiment}}</textarea>
+    <button type="button" onclick="pretty('experiment')">Beauty</button>
+
+    <textarea id="context">{{context}}</textarea>
+    <button type="button" onclick="pretty('context')">Beauty</button>
+
+    <button type="submit">Send!</button>
+</form>
+
+<h1>Result</h1>
+<ul id="result"></ul>
+
+</body>
+
+<script src="/static/index.js"></script>
+</html>

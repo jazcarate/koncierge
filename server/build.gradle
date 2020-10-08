@@ -5,11 +5,13 @@ buildscript {
     
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
     }
 }
 
 apply plugin: 'kotlin'
 apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'ar.com.florius'
 version '0.0.1-SNAPSHOT'
@@ -27,6 +29,8 @@ repositories {
     jcenter()
     maven { url 'https://kotlin.bintray.com/ktor' }
 }
+
+task stage(dependsOn: ['clean', 'shadowJar'])
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"

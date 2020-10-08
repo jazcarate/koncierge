@@ -19,6 +19,8 @@ subprojects {
 }
 
 
+task stage(dependsOn: [':server:stage'])
+
 test {
     useJUnitPlatform()
 }

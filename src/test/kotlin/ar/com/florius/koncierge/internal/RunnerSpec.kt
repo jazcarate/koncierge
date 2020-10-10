@@ -1,5 +1,11 @@
 package ar.com.florius.koncierge.internal
 
+import ar.com.florius.koncierge.internal.definition.*
+import ar.com.florius.koncierge.internal.definition.Any
+import ar.com.florius.koncierge.internal.types.Context
+import ar.com.florius.koncierge.internal.types.Experiment
+import ar.com.florius.koncierge.internal.types.Variant
+import ar.com.florius.koncierge.internal.types.World
 import com.google.gson.JsonArray
 import com.google.gson.JsonNull
 import com.google.gson.JsonObject
@@ -456,7 +462,7 @@ class RunnerSpec : ShouldSpec({
                 )
 
                 should("distribute variants") {
-                    chaos = 1.0F
+                    chaos = 0.99F
                     val res1 = run(world, Context(JsonNull.INSTANCE), experiment)
                     chaos = 0.0F
                     val res2 = run(world, Context(JsonNull.INSTANCE), experiment)

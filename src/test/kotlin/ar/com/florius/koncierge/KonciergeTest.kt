@@ -1,5 +1,6 @@
 package ar.com.florius.koncierge
 
+import ar.com.florius.koncierge.types.KonciergeException
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ShouldSpec

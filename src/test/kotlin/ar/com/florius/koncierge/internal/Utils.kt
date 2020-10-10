@@ -1,5 +1,8 @@
 package ar.com.florius.koncierge.internal
 
+import ar.com.florius.koncierge.internal.definition.Evaluator
+import ar.com.florius.koncierge.internal.types.Experiment
+import ar.com.florius.koncierge.internal.types.Variant
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject

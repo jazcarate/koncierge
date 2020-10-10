@@ -1,5 +1,9 @@
 package ar.com.florius.koncierge.internal
 
+import ar.com.florius.koncierge.internal.definition.*
+import ar.com.florius.koncierge.internal.definition.Any
+import ar.com.florius.koncierge.internal.types.Experiment
+import ar.com.florius.koncierge.internal.types.Variant
 import com.google.gson.JsonPrimitive
 import com.google.gson.internal.LazilyParsedNumber
 import io.kotest.assertions.arrow.either.shouldBeLeft

@@ -1,5 +1,9 @@
 package ar.com.florius.koncierge.internal
 
+import ar.com.florius.koncierge.internal.definition.*
+import ar.com.florius.koncierge.internal.definition.Any
+import ar.com.florius.koncierge.internal.types.Experiment
+import ar.com.florius.koncierge.internal.types.Variant
 import arrow.core.*
 import arrow.core.computations.either
 import arrow.core.extensions.either.applicative.applicative
@@ -13,20 +17,39 @@ import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
-
+/**
+ * This class has no useful logic; it's just a wrapper an parser error.
+ *
+ * @constructor Warps an parser error
+ */
 inline class ParseError(val s: String)
 
-fun parseAll(s: String): Either<ParseError, List<Experiment>> {
-    return parseAll(JsonParser.parseString(s))
+/**
+ * Given a [definition] in JSON format, it parses it and parses it
+ *
+ * @param[definition] a JSON string representation of the definition
+ * @see ar.com.florius.koncierge.internal.parseAll(com.google.gson.JsonElement)
+ */
+fun parseAll(definition: String): Either<ParseError, List<Experiment>> {
+    return parseAll(JsonParser.parseString(definition))
 }
 
-fun parseAll(elem: JsonElement): Either<ParseError, List<Experiment>> {
-    if (!elem.isJsonObject) {
-        return ParseError("The first level of experiment definition needs to be an object. Got [$elem]").left()
+/**
+ * Given a JSON [definition], it attempts to parse it into a list of experiments
+ *
+ * The definition should be a JSON object with at least one experiment definition.
+ * The error reporting halts on the first encountered error. It does not report a list of errors.
+ *
+ * @param[definition] a [JsonElement] representation of the definition
+ * @return Either a parse error if something did not match **koncierge**'s format or the list of [Experiment]
+ */
+fun parseAll(definition: JsonElement): Either<ParseError, List<Experiment>> {
+    if (!definition.isJsonObject) {
+        return ParseError("The first level of experiment definition needs to be an object. Got [$definition]").left()
     }
-    val treeO = elem.asJsonObject
+    val treeO = definition.asJsonObject
     if (treeO.size() == 0) {
-        return ParseError("There needs to be at least one experiment definition. Got [$elem]").left()
+        return ParseError("There needs to be at least one experiment definition. Got [$definition]").left()
     }
 
     return treeO.entrySet().map { (name, value) -> experiment(name, value) }

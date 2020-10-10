@@ -1,5 +1,11 @@
 package ar.com.florius.koncierge.internal
 
+import ar.com.florius.koncierge.internal.definition.*
+import ar.com.florius.koncierge.internal.definition.Any
+import ar.com.florius.koncierge.internal.types.Context
+import ar.com.florius.koncierge.internal.types.Experiment
+import ar.com.florius.koncierge.internal.types.Variant
+import ar.com.florius.koncierge.internal.types.World
 import arrow.core.*
 import arrow.core.extensions.either.applicative.applicative
 import arrow.core.extensions.list.monadFilter.filterMap
@@ -9,8 +15,26 @@ import com.google.gson.JsonPrimitive
 import com.google.gson.internal.LazilyParsedNumber
 import kotlin.math.absoluteValue
 
+/**
+ * This class has no useful logic; it's just a wrapper an evaluation error.
+ *
+ * An evaluation error is considered as a negative match on evaluation.
+ * e.g.: diving into an empty object, is an [EvalError], but will simply not match
+ * the experiment definition when [run] is called.
+ *
+ * @constructor Warps an evaluation error
+ */
 inline class EvalError(val s: String)
 
+/**
+ * Given a [world], a [context] and an [experiment], evaluates the list of variants for it.
+ * *Note*: the experiment is a sinlge one, and not the experiment definition
+ *
+ * @param[world] The effect manager
+ * @param[context] The context to evaluate
+ * @param[experiment] The experiment to evaluate to
+ * @return list of variants that match the experiment
+ */
 fun run(world: World, context: Context, experiment: Experiment): List<Variant> {
     val one = activeOne(world, context, experiment)
     val selected =
@@ -30,6 +54,9 @@ private fun activeOne(
         .flatMap { Either.conditionally(it, { EvalError("Did not match") }, { experiment.name }) }
 }
 
+/**
+ * [Evaluator] transformations
+ */
 private fun evaluate(world: World, context: Context, condition: Evaluator): Either<EvalError, Boolean> {
     return when (condition) {
         is LessThan -> compare(context) { a -> condition.x > a }
@@ -73,6 +100,9 @@ private fun many(
         .map { f(it) }
 }
 
+/**
+ * [ContextChanger] transformations
+ */
 private fun change(world: World, cc: ContextChanger, context: Context): Either<EvalError, Context> {
     return when (cc) {
         is Dive -> dive(cc.key, context.element).map(::Context).mapLeft(::EvalError)
@@ -82,7 +112,7 @@ private fun change(world: World, cc: ContextChanger, context: Context): Either<E
             )
         ).right()
         is Random -> context.fmap { JsonPrimitive(hash(it)) }.right()
-        is Chaos -> Context(JsonPrimitive(world.genChaos.invoke(Unit))).right()
+        is Chaos -> Context(JsonPrimitive(world.safeGenChaos())).right()
         is Size -> size(context.element).map { Context(JsonPrimitive(it)) }.mapLeft(::EvalError)
     }
 }

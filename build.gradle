@@ -1,5 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.4.10'
+    id 'org.jetbrains.dokka' version '1.4.10'
 }
 
 group 'ar.com.florius'
@@ -45,4 +46,28 @@ dependencies {
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+}
+
+tasks.named("dokkaHtml") {
+    moduleName.set("koncierge")
+    dokkaSourceSets {
+        configureEach {
+            includeNonPublic.set(false)
+            skipEmptyPackages.set(true)
+
+            includes.from("module.md")
+            sourceRoot.from(file("src"))
+
+            sourceLink {
+                // Unix based directory relative path to the root of the project (where you execute gradle respectively).
+                localDirectory.set(file("src/main/kotlin"))
+
+                // URL showing where the source code can be accessed through the web browser
+                remoteUrl.set(java.net.URL(
+                        "https://github.com/cy6erGn0m/vertx3-lang-kotlin/blob/master/src/main/kotlin"))
+                // Suffix which is used to append the line number to the URL. Use #L for GitHub
+                remoteLineSuffix.set("#L")
+            }
+        }
+    }
 }

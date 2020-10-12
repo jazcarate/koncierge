@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.github.mustachejava.DefaultMustacheFactory
 import io.ktor.application.*
 import io.ktor.features.*
+import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.jackson.*
 import io.ktor.mustache.*
@@ -14,9 +15,8 @@ import io.ktor.routing.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-@Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+@Suppress("unused")
+fun Application.module() {
     install(Mustache) {
         mustacheFactory = DefaultMustacheFactory("templates/mustache")
     }
@@ -32,8 +32,12 @@ fun Application.module(testing: Boolean = false) {
     routing {
         get("/") {
             val parameters = call.parameters
-            val context = parameters["context"] ?: "{}"
-            val experiment = parameters["experiment"] ?: experiments.random()
+            var example = parameters["context"] to parameters["experiment"]
+
+            if (example.first === null && example.second === null) {
+                example = experiments.random()
+            }
+            val (experiment, context) = example
 
             call.respondTemplate(
                 "index.hbs",
@@ -44,10 +48,18 @@ fun Application.module(testing: Boolean = false) {
         post("/api/eval") {
             val parameters = call.receive<EvalBody>()
 
-            val exp = koncierge.parse(parameters.experiment)
-            val result = koncierge.evaluate(exp, parameters.context).toMatrix()
+            try {
+                val exp = koncierge.parse(parameters.experiment)
+                val result = koncierge.evaluate(exp, parameters.context).toMatrix()
 
-            call.respond(result)
+                call.respond(result)
+            } catch (ex: Exception) {
+                call.respondText(
+                    ex.localizedMessage,
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.BadRequest,
+                )
+            }
         }
 
         static("/static") {
@@ -56,7 +68,7 @@ fun Application.module(testing: Boolean = false) {
     }
 }
 
-val experiments: List<String> = listOf(
+val experiments: List<Pair<String, String>> = listOf(
     """
         {
             "EXP001": {
@@ -64,6 +76,28 @@ val experiments: List<String> = listOf(
                     "participating": { "${'$'}rand": { "${'$'}gt": 0.5 } },
                     "control": { "${'$'}always":  true }
                 }
+            }
+        }
+    """.trimIndent() to """
+        {}
+    """.trimIndent(),
+    """
+        {
+            "EXP001": {
+                "${'$'}children": {
+                    "participating": {
+                        "version.number": {
+                            "${'$'}gt": 3
+                        }
+                    },
+                    "control": {}
+                }
+            }
+        }
+    """.trimIndent() to """
+        {
+            "version": {
+                "number": 5
             }
         }
     """.trimIndent()

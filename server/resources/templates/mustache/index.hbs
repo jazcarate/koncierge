@@ -1,21 +1,71 @@
-<!DOCTYPE html>
-<html>
-<body lang="en">
+<!doctype html>
+<html lang="en">
 
-<form onsubmit="return runEval(event);" method="post" action="/api/eval">
-    <textarea id="experiment">{{experiment}}</textarea>
-    <button type="button" onclick="pretty('experiment')">Beauty</button>
+<head>
+    <meta charset="utf-8">
+    <title>koncierge :: Playground</title>
+    <meta name="description" content="koncierge :: Playground">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Patua+One&family=Roboto&display=swap" rel="stylesheet">
+    <meta name="robots" content="index, nofollow">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛎</text></svg>">
 
-    <textarea id="context">{{context}}</textarea>
-    <button type="button" onclick="pretty('context')">Beauty</button>
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:creator" content="@FloriusWasTaken"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="koncierge">
+    <meta property="og:description " content="Playground for koncierge">
+    <meta property="og:url" content="https://koncierge.florius.com.ar/"/>
+</head>
 
-    <button type="submit">Send!</button>
-</form>
+<body>
+<div class="wrapper">
+    <div class="aligner">
+        <nav>
+            <span class="title">koncierge 🛎</span>
+            <span class="tagline">:: Playground</span>
+        </nav>
 
-<h1>Result</h1>
-<ul id="result"></ul>
+        <div class="item">
+            <form onsubmit="return runEval(event);" method="post" action="/api/eval">
+                <div class="json-area">
+                    <textarea id="experiment" rows="10" cols="60">{{experiment}}</textarea>
+                    <button type="button" onclick="pretty('experiment')">Beautify</button>
+                </div>
 
+                <div class="json-area">
+                    <textarea id="context" rows="10" cols="60">{{context}}</textarea>
+                    <button type="button" onclick="pretty('context')">Beautify</button>
+                </div>
+
+                <button type="submit">Check!</button>
+            </form>
+        </div>
+
+
+        <div class="item">
+            <h1>Result</h1>
+            <ul id="result"></ul>
+        </div>
+
+        <div class="item">
+            Read more about this, why and how to use it in <a href="https://github.com/jazcarate/koncierge#readme"
+                                                              target="_blank" rel="noopener noreferrer"
+                                                              title="github:jazcarate/koncierge">GitHub</a>.
+        </div>
+
+        <div class="meta">
+            <ul class="footer-list">
+                <li>by <a href="https://github.com/jazcarate" target="_blank" rel="noopener noreferrer"
+                          title="github:jazcarate">Joaquin "Florius" Azcarate</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
 </body>
 
+<script src="https://unpkg.com/relaxed-json@1.0.3/relaxed-json.js"></script>
 <script src="/static/index.js"></script>
 </html>

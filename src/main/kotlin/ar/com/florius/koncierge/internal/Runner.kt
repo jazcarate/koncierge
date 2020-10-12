@@ -8,7 +8,6 @@ import ar.com.florius.koncierge.internal.types.Variant
 import ar.com.florius.koncierge.internal.types.World
 import arrow.core.*
 import arrow.core.extensions.either.applicative.applicative
-import arrow.core.extensions.list.monadFilter.filterMap
 import arrow.core.extensions.list.traverse.traverse
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
@@ -20,27 +19,27 @@ import kotlin.math.absoluteValue
  *
  * An evaluation error is considered as a negative match on evaluation.
  * e.g.: diving into an empty object, is an [EvalError], but will simply not match
- * the experiment definition when [run] is called.
+ * the experiment definition when [evaluate] is called.
  *
  * @constructor Warps an evaluation error
  */
 inline class EvalError(val s: String)
 
 /**
- * Given a [world], a [context] and an [experiment], evaluates the list of variants for it.
+ * Given a [world], a [context] (with an experiment), evaluates the list of variants for it.
  * *Note*: the experiment is a sinlge one, and not the experiment definition
  *
  * @param[world] The effect manager
  * @param[context] The context to evaluate
- * @param[experiment] The experiment to evaluate to
+ *
  * @return list of variants that match the experiment
  */
-fun run(world: World, context: Context, experiment: Experiment): List<Variant> {
-    val one = activeOne(world, context, experiment)
+fun evaluate(world: World, context: Context): List<Variant> {
+    val one = activeOne(world, context)
     val selected =
-        experiment.children
-            .map { activeOne(world, context, it) }
-            .filterMap { it.fold({ Option.empty() }, { Option.just(it) }) }
+        context.experiment.children
+            .map { activeOne(world, context.copy(experiment = it)) }
+            .mapNotNull { it.orNull() }
             .firstOrNull()
     return one.fold({ emptyList() }, { listOf(it) }) + (selected?.let { listOf(it) } ?: emptyList())
 }
@@ -48,27 +47,26 @@ fun run(world: World, context: Context, experiment: Experiment): List<Variant> {
 private fun activeOne(
     world: World,
     context: Context,
-    experiment: Experiment
 ): Either<EvalError, Variant> {
-    return evaluate(world, context, experiment.condition)
-        .flatMap { Either.conditionally(it, { EvalError("Did not match") }, { experiment.name }) }
+    return evaluateOne(world, context, context.experiment.condition)
+        .flatMap { Either.conditionally(it, { EvalError("Did not match") }, { context.experiment.name }) }
 }
 
 /**
  * [Evaluator] transformations
  */
-private fun evaluate(world: World, context: Context, condition: Evaluator): Either<EvalError, Boolean> {
+private fun evaluateOne(world: World, context: Context, condition: Evaluator): Either<EvalError, Boolean> {
     return when (condition) {
         is LessThan -> compare(context) { a -> condition.x > a }
         is GreaterThan -> compare(context) { a -> condition.x < a }
         is Equal -> (gson().toJsonTree(condition.x) == context.element).right()
-        is Not -> evaluate(world, context, condition.inner).map { it.not() }
+        is Not -> evaluateOne(world, context, condition.inner).map { it.not() }
         is Always -> condition.value.right()
         is And -> many(world, context, condition.evals, ::and)
         is Or -> many(world, context, condition.evals, ::or)
         is Any -> list(world, context, condition.eval, ::or)
         is All -> list(world, context, condition.eval, ::and)
-        is Bind -> change(world, condition.cc, context).flatMap { evaluate(world, it, condition.eval) }
+        is Bind -> change(world, condition.cc, context).flatMap { evaluateOne(world, it, condition.eval) }
     }
 }
 
@@ -80,8 +78,8 @@ private fun list(
 ): Either<EvalError, Boolean> {
     val element = context.element
     return if (element.isJsonArray) {
-        element.asJsonArray.map(::Context)
-            .traverse(Either.applicative()) { evaluate(world, it, eval) }
+        element.asJsonArray.map { context.fmapConst(it) }
+            .traverse(Either.applicative()) { evaluateOne(world, it, eval) }
             .fix().map { it.fix() }
             .map { f(it) }
     } else {
@@ -95,7 +93,7 @@ private fun many(
     evals: List<Evaluator>,
     f: (Iterable<Boolean>) -> Boolean
 ): Either<EvalError, Boolean> {
-    return evals.traverse(Either.applicative()) { evaluate(world, context, it) }
+    return evals.traverse(Either.applicative()) { evaluateOne(world, context, it) }
         .fix().map { it.fix() }
         .map { f(it) }
 }
@@ -105,15 +103,15 @@ private fun many(
  */
 private fun change(world: World, cc: ContextChanger, context: Context): Either<EvalError, Context> {
     return when (cc) {
-        is Dive -> dive(cc.key, context.element).map(::Context).mapLeft(::EvalError)
-        is Date -> Context(
+        is Dive -> dive(cc.key, context.element).map(context::fmapConst).mapLeft(::EvalError)
+        is Date -> context.fmapConst(
             JsonPrimitive(
                 world.getDate.invoke(Unit).toEpochSecond()
             )
         ).right()
-        is Random -> context.fmap { JsonPrimitive(hash(it)) }.right()
-        is Chaos -> Context(JsonPrimitive(world.safeGenChaos())).right()
-        is Size -> size(context.element).map { Context(JsonPrimitive(it)) }.mapLeft(::EvalError)
+        is Random -> context.fmap { JsonPrimitive(hash(it, context.experiment)) }.right()
+        is Chaos -> context.fmapConst(JsonPrimitive(world.safeGenChaos())).right()
+        is Size -> size(context.element).map { context.fmapConst(JsonPrimitive(it)) }.mapLeft(::EvalError)
     }
 }
 
@@ -146,8 +144,9 @@ private fun size(element: JsonElement): Either<String, Number> {
     return "Can't get size for [$element]".left()
 }
 
-private fun hash(element: JsonElement): Float {
-    return gson().toJson(element).hashCode().absoluteValue.toFloat() / Int.MAX_VALUE
+private fun hash(element: JsonElement, experiment: Experiment): Float {
+    return (gson().toJson(element) + experiment.name.unVariant)
+        .hashCode().absoluteValue.toFloat() / Int.MAX_VALUE
 }
 
 private fun dive(key: String, elem: JsonElement): Either<String, JsonElement> {

@@ -1,6 +1,80 @@
-<h1>koncierge 🛎</h1>
+<!doctype html>
+<html lang="en">
 
-<ul>
-    <li><a href="/koncierge">Documentation</a></li>
-    <li><a href="https://koncierge-playground.herokuapp.com">Playground</a></li>
-</ul>
+<head>
+    <meta charset="utf-8">
+    <title>koncierge</title>
+    <meta content="koncierge :: Evaluating variants" name="description">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link href="styles.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Patua+One&family=Roboto&display=swap" rel="stylesheet">
+    <meta content="index, nofollow" name="robots">
+    <link href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛎</text></svg>"
+          rel="icon">
+
+    <meta content="summary" name="twitter:card"/>
+    <meta content="@FloriusWasTaken" name="twitter:creator"/>
+    <meta content="website" property="og:type"/>
+    <meta content="koncierge" property="og:title">
+    <meta content="Kotlin library to evaluate AB Testing variants" property="og:description ">
+    <meta content="https://koncierge.florius.com.ar/" property="og:url"/>
+</head>
+
+<body>
+<div class="wrapper">
+    <div class="aligner">
+        <div class="item">
+            <h3 class="title">koncierge 🛎</h3>
+            <h2 class="tagline">Kotlin library to evaluate AB Testing variants</h2>
+        </div>
+
+        <div class="item example">
+            <blockquote>
+                For <span class="highlight-1">EXP0001</span>, split the users so that half are <span
+                    class="highlight-2">participating</span> in the experiment, and the rest in the <span
+                    class="highlight-3">control</span> variant
+            </blockquote>
+
+            <strong>Becomes</strong>
+
+            <code>
+                <pre>
+{
+  "<span class="highlight-1">EXP001</span>>": {
+    "$children": {
+      "<span class="highlight-2">participating</span>": { "$rand": { "$gt": 0.5 } },
+      "<span class="highlight-3">control</span>": { "$always": true }
+    }
+  }
+}
+                </pre>
+            </code>
+        </div>
+
+        <div class="drop" id="info">
+            <div>
+                <a class="btn" href="/koncierge"
+                   rel="noopener noreferrer" title="Code documentation">Documentation</a>
+                <a class="btn" href="https://koncierge-playground.herokuapp.com/"
+                   rel="noopener noreferrer" title="heroku:koncierge/playground">Playground</a>
+
+            </div>
+        </div>
+
+        <div class="item">
+            Read more about this, why and how to use it in <a href="https://github.com/jazcarate/koncierge#rreadme"
+                                                              rel="noopener noreferrer" target="_blank"
+                                                              title="github:jazcarate/koncierge">GitHub</a>.
+        </div>
+
+        <div class="meta">
+            <ul class="footer-list">
+                <li>by <a href="https://github.com/jazcarate" rel="noopener noreferrer" target="_blank"
+                          title="github:jazcarate">Joaquin "Florius" Azcarate</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

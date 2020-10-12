@@ -38,34 +38,31 @@ class RunnerSpec : ShouldSpec({
 
                 context("empty context") {
                     should("fails to dive") {
-                        val context = Context(JsonNull.INSTANCE)
+                        val context = Context(JsonNull.INSTANCE, experiment)
 
-                        run(
+                        evaluate(
                             world,
-                            context,
-                            experiment
+                            context
                         ) shouldBe emptyList()
                     }
                 }
 
                 context("context with the key to dive") {
                     should("dive and call the evaluator") {
-                        val context = Context(jsonObject("beta" to "yes"))
+                        val context = Context(jsonObject("beta" to "yes"), experiment)
 
-                        run(
+                        evaluate(
                             world,
-                            context,
-                            experiment
+                            context
                         ) shouldBe listOf(Variant("EXP001"))
                     }
 
                     should("valuate to a disabled") {
-                        val context = Context(jsonObject("beta" to "no"))
+                        val context = Context(jsonObject("beta" to "no"), experiment)
 
-                        run(
+                        evaluate(
                             world,
-                            context,
-                            experiment
+                            context
                         ) shouldBe emptyList()
                     }
                 }
@@ -80,22 +77,20 @@ class RunnerSpec : ShouldSpec({
                 )
 
                 should("dive by position") {
-                    val context = Context(jsonArray(10, 20, 30))
+                    val context = Context(jsonArray(10, 20, 30), experiment)
 
-                    run(
+                    evaluate(
                         world,
-                        context,
-                        experiment
+                        context
                     ) shouldBe listOf(Variant("EXP001"))
                 }
 
                 should("fail if not an array") {
-                    val context = Context(jsonObject("beta" to "no"))
+                    val context = Context(jsonObject("beta" to "no"), experiment)
 
-                    run(
+                    evaluate(
                         world,
-                        context,
-                        experiment
+                        context
                     ) shouldBe emptyList()
                 }
             }
@@ -109,12 +104,11 @@ class RunnerSpec : ShouldSpec({
                 )
 
                 should("fail to dive into an array") {
-                    val context = Context(jsonArray(10, 20, 30))
+                    val context = Context(jsonArray(10, 20, 30), experiment)
 
-                    run(
+                    evaluate(
                         world,
-                        context,
-                        experiment
+                        context
                     ) shouldBe emptyList()
                 }
             }
@@ -129,10 +123,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("not match") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe emptyList()
                     }
                 }
@@ -146,10 +139,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("matches the experiment") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe listOf(Variant("EXP001"))
                     }
                 }
@@ -163,10 +155,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("matches the experiment") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe listOf(Variant("EXP001"))
                     }
                 }
@@ -180,10 +171,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("not match") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe emptyList()
                     }
                 }
@@ -196,10 +186,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("matches the experiment") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe listOf(experiment.name)
                     }
                 }
@@ -210,10 +199,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("not match") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe emptyList()
                     }
                 }
@@ -231,10 +219,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("not match") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe listOf(experiment.name)
                     }
                 }
@@ -250,10 +237,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("not match") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe emptyList()
                     }
                 }
@@ -271,10 +257,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("not match") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe emptyList()
                     }
                 }
@@ -290,10 +275,9 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     should("matches the experiment") {
-                        run(
+                        evaluate(
                             world,
-                            Context(JsonNull.INSTANCE),
-                            experiment
+                            Context(JsonNull.INSTANCE, experiment)
                         ) shouldBe listOf(experiment.name)
                     }
                 }
@@ -310,25 +294,23 @@ class RunnerSpec : ShouldSpec({
 
                     context("of an array") {
                         context("short") {
-                            val context = Context(jsonArray(1))
+                            val context = Context(jsonArray(1), experiment)
 
                             should("not match") {
-                                run(
+                                evaluate(
                                     world,
-                                    context,
-                                    experiment
+                                    context
                                 ) shouldBe emptyList()
                             }
                         }
 
                         context("long") {
-                            val context = Context(jsonArray(1, 2, 3))
+                            val context = Context(jsonArray(1, 2, 3), experiment)
 
                             should("not match") {
-                                run(
+                                evaluate(
                                     world,
-                                    context,
-                                    experiment
+                                    context
                                 ) shouldBe listOf(experiment.name)
                             }
                         }
@@ -336,25 +318,23 @@ class RunnerSpec : ShouldSpec({
 
                     context("of an string") {
                         context("short") {
-                            val context = Context(JsonPrimitive("h"))
+                            val context = Context(JsonPrimitive("h"), experiment)
 
                             should("not match") {
-                                run(
+                                evaluate(
                                     world,
-                                    context,
-                                    experiment
+                                    context
                                 ) shouldBe emptyList()
                             }
                         }
 
                         context("long") {
-                            val context = Context(JsonPrimitive("hello!"))
+                            val context = Context(JsonPrimitive("hello!"), experiment)
 
                             should("not match") {
-                                run(
+                                evaluate(
                                     world,
-                                    context,
-                                    experiment
+                                    context
                                 ) shouldBe listOf(experiment.name)
                             }
                         }
@@ -362,50 +342,46 @@ class RunnerSpec : ShouldSpec({
 
                     context("of an object") {
                         context("short") {
-                            val context = Context(jsonObject("a" to "1"))
+                            val context = Context(jsonObject("a" to "1"), experiment)
 
                             should("not match") {
-                                run(
+                                evaluate(
                                     world,
-                                    context,
-                                    experiment
+                                    context
                                 ) shouldBe emptyList()
                             }
                         }
 
                         context("long") {
-                            val context = Context(jsonObject("a" to "1", "b" to "2", "c" to "3"))
+                            val context = Context(jsonObject("a" to "1", "b" to "2", "c" to "3"), experiment)
 
                             should("not match") {
-                                run(
+                                evaluate(
                                     world,
-                                    context,
-                                    experiment
+                                    context
                                 ) shouldBe listOf(experiment.name)
                             }
                         }
                     }
 
                     context("of null") {
-                        val context = Context(JsonNull.INSTANCE)
+                        val context = Context(JsonNull.INSTANCE, experiment)
 
                         should("not match") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe emptyList()
                         }
                     }
 
                     context("something else") {
-                        val context = Context(JsonPrimitive(true))
+                        val context = Context(JsonPrimitive(true), experiment)
 
                         should("fails to parse") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe emptyList()
                         }
                     }
@@ -416,40 +392,56 @@ class RunnerSpec : ShouldSpec({
                 val experiment = buildExperiment(
                     Bind(
                         Random,
-                        Equal(0.0015799436F) // Generated once for `null` context
+                        Equal(0.0015799436F) // Generated once for `null` context and EXP001
                     )
                 )
 
                 context("with a empty context") {
-                    val context = Context(JsonNull.INSTANCE)
+                    val context = Context(JsonNull.INSTANCE, experiment)
 
                     should("matches the experiment") {
-                        run(
+                        evaluate(
                             world,
-                            context,
-                            experiment
+                            context
                         ) shouldBe listOf(experiment.name)
                     }
                 }
 
                 context("with a different context") {
-                    val context = Context(JsonPrimitive("foo"))
+                    val context = Context(JsonPrimitive("foo"), experiment)
 
                     should("not match") {
-                        run(
+                        evaluate(
                             world,
-                            context,
-                            experiment
+                            context
                         ) shouldBe emptyList()
                     }
                 }
 
-                should("the same context should yeild the same result") {
-                    val res1 = run(world, Context(JsonNull.INSTANCE), experiment)
-                    val res2 = run(world, Context(JsonNull.INSTANCE), experiment)
+                context("the same context") {
+                    val context = Context(JsonNull.INSTANCE, experiment)
 
-                    res1 shouldBe listOf(experiment.name)
-                    res1 shouldBe res2
+                    context("with the same experiment") {
+                        should("yield the same result") {
+                            val res1 = evaluate(world, context)
+                            val res2 = evaluate(world, context)
+
+                            res1 shouldBe listOf(experiment.name)
+                            res1 shouldBe res2
+                        }
+                    }
+
+                    context("with different experiments") {
+                        val otherExperiment = context.copy(experiment = experiment.copy(name = Variant("EXP002")))
+
+                        should("yield the different result") {
+                            val res1 = evaluate(world, context)
+                            val res2 = evaluate(world, otherExperiment)
+
+                            res1 shouldBe listOf(experiment.name)
+                            res2 shouldBe emptyList()
+                        }
+                    }
                 }
             }
 
@@ -463,9 +455,9 @@ class RunnerSpec : ShouldSpec({
 
                 should("distribute variants") {
                     chaos = 0.99F
-                    val res1 = run(world, Context(JsonNull.INSTANCE), experiment)
+                    val res1 = evaluate(world, Context(JsonNull.INSTANCE, experiment))
                     chaos = 0.0F
-                    val res2 = run(world, Context(JsonNull.INSTANCE), experiment)
+                    val res2 = evaluate(world, Context(JsonNull.INSTANCE, experiment))
 
 
                     res1 shouldBe listOf(experiment.name)
@@ -479,14 +471,14 @@ class RunnerSpec : ShouldSpec({
                 )
 
                 should("negates the predicate, matching") {
-                    run(
-                        world, Context(JsonNull.INSTANCE), experiment
+                    evaluate(
+                        world, Context(JsonNull.INSTANCE, experiment)
                     ) shouldBe listOf(experiment.name)
                 }
 
                 should("negates the predicate, not matching") {
-                    run(
-                        world, Context(JsonPrimitive("yes")), experiment
+                    evaluate(
+                        world, Context(JsonPrimitive("yes"), experiment)
                     ) shouldBe emptyList()
                 }
             }
@@ -498,25 +490,23 @@ class RunnerSpec : ShouldSpec({
                     )
 
                     context("an empty context") {
-                        val context = Context(JsonNull.INSTANCE)
+                        val context = Context(JsonNull.INSTANCE, experiment)
 
                         should("fail to dive") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe emptyList()
                         }
                     }
 
                     context("a context with only the first layer of dive") {
-                        val context = Context(jsonObject("foo" to "yes"))
+                        val context = Context(jsonObject("foo" to "yes"), experiment)
 
                         should("fail to dive deep") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe emptyList()
                         }
                     }
@@ -524,13 +514,12 @@ class RunnerSpec : ShouldSpec({
                     context("a context with all the layers of dive") {
                         val contextJson = JsonObject()
                         contextJson.add("foo", jsonObject("bar" to "yes"))
-                        val context = Context(contextJson)
+                        val context = Context(contextJson, experiment)
 
                         should("match the deep level") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe listOf(experiment.name)
                         }
                     }
@@ -547,40 +536,39 @@ class RunnerSpec : ShouldSpec({
                 context("an array context") {
                     context("at least one matches") {
                         val context = Context(
-                            jsonArray(3, 2)
+                            jsonArray(3, 2),
+                            experiment
                         )
 
                         should("match") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe listOf(experiment.name)
                         }
                     }
 
                     context("none matches") {
                         val context = Context(
-                            jsonArray(2)
+                            jsonArray(2),
+                            experiment
                         )
 
                         should("not match") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe emptyList()
                         }
                     }
 
                     context("empty list") {
-                        val context = Context(JsonArray())
+                        val context = Context(JsonArray(), experiment)
 
                         should("not match") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe emptyList()
                         }
                     }
@@ -590,10 +578,9 @@ class RunnerSpec : ShouldSpec({
                     context("fails to parse") {
 
                         should("match") {
-                            run(
+                            evaluate(
                                 world,
-                                Context(JsonPrimitive(3)),
-                                experiment
+                                Context(JsonPrimitive(3), experiment),
                             ) shouldBe emptyList()
                         }
                     }
@@ -602,40 +589,39 @@ class RunnerSpec : ShouldSpec({
                 xcontext("an object context") {
                     context("at least one matches") {
                         val context = Context(
-                            jsonObject("foo" to "3")
+                            jsonObject("foo" to "3"),
+                            experiment
                         )
 
                         should("match") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe listOf(experiment.name)
                         }
                     }
 
                     context("none matches") {
                         val context = Context(
-                            jsonArray(2)
+                            jsonArray(2),
+                            experiment
                         )
 
                         should("not match") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe emptyList()
                         }
                     }
 
                     context("empty list") {
-                        val context = Context(JsonArray())
+                        val context = Context(JsonArray(), experiment)
 
                         should("not match") {
-                            run(
+                            evaluate(
                                 world,
-                                context,
-                                experiment
+                                context
                             ) shouldBe emptyList()
                         }
                     }
@@ -663,10 +649,9 @@ class RunnerSpec : ShouldSpec({
                 )
 
                 should("match the one children") {
-                    run(
+                    evaluate(
                         world,
-                        Context(JsonNull.INSTANCE),
-                        experiment
+                        Context(JsonNull.INSTANCE, experiment)
                     ) shouldBe listOf(experiment.name, matchingVariant.name)
                 }
             }
@@ -690,10 +675,9 @@ class RunnerSpec : ShouldSpec({
                 )
 
                 should("match the first children") {
-                    run(
+                    evaluate(
                         world,
-                        Context(JsonNull.INSTANCE),
-                        experiment
+                        Context(JsonNull.INSTANCE, experiment)
                     ) shouldBe listOf(experiment.name, firstMatchingVariant.name)
                 }
             }
@@ -712,11 +696,31 @@ class RunnerSpec : ShouldSpec({
                 )
 
                 should("does not match the whole experiment") {
-                    run(
+                    evaluate(
                         world,
-                        Context(JsonNull.INSTANCE),
-                        experiment
+                        Context(JsonNull.INSTANCE, experiment)
                     ) shouldBe listOf(experiment.name)
+                }
+            }
+
+            context("parent doesn't match") {
+                val matching = Experiment(
+                    Variant("control"),
+                    Always(true),
+                    emptyList()
+                )
+
+                val experiment = Experiment(
+                    Variant("EXP001"),
+                    Always(false),
+                    listOf(matching)
+                )
+
+                should("does not match the whole experiment") {
+                    evaluate(
+                        world,
+                        Context(JsonNull.INSTANCE, experiment)
+                    ) shouldBe emptyList()
                 }
             }
         }

@@ -10,6 +10,7 @@ function runEval(event){
       window.history.pushState ( { path: newurl }, '', newurl);
     }
 
+    result.innerHTML = 'Evaluating...';
     fetch(form.action, {
        method: form.method,
        headers: {
@@ -21,15 +22,28 @@ function runEval(event){
          experiment: experiment
        })
      })
-      .then(response => response.json())
+      .then(response => {
+        if(response.ok)
+            return response.json()
+        return response.text()
+            .then(err => Promise.reject(err));
+      })
       .then(data => {
         var result = document.getElementById("result");
         result.innerHTML = '';
-        data.forEach(function(experiment){
-            var li = document.createElement("li")
-            li.textContent = experiment.join(".");
-            result.appendChild(li)
-        });
+
+        if(data[0].length == 0){
+            result.textContent = "No experiment matched.";
+        } else {
+            data.forEach(function(experiment){
+                var li = document.createElement("li")
+                li.textContent = experiment.join(".");
+                result.appendChild(li)
+            });
+        }
+      })
+      .catch(err => {
+        result.textContent = '[ERROR]: ' + err;
       });
 
     return false;
@@ -38,7 +52,7 @@ function runEval(event){
 function pretty(elementId){
     var element = document.getElementById(elementId);
     try{
-        var newTest = JSON.stringify(JSON.parse(element.value), null, 4);
+        var newTest = JSON.stringify(RJSON.parse(element.value), null, 4);
         element.value = newTest;
     } catch (error) {
        console.error(error);

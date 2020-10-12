@@ -1,8 +1,8 @@
 package ar.com.florius.koncierge
 
 import ar.com.florius.koncierge.internal.ParseError
+import ar.com.florius.koncierge.internal.evaluate
 import ar.com.florius.koncierge.internal.parseAll
-import ar.com.florius.koncierge.internal.run
 import ar.com.florius.koncierge.internal.types.Context
 import ar.com.florius.koncierge.internal.types.Variant
 import ar.com.florius.koncierge.internal.types.World
@@ -71,7 +71,7 @@ class Koncierge {
     fun evaluate(experiment: KonciergeExperiment, context: String): KonciergeExperimentResult {
         return KonciergeExperimentResult(
             experiment.unExperiments.map {
-                run(world, Context(JsonParser.parseString(context)), it)
+                evaluate(world, Context(JsonParser.parseString(context), it))
                     .map(Variant::unVariant)
             }.map(::KonciergeVariant)
         )

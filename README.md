@@ -1,6 +1,8 @@
 # koncierge 🛎
 ![tests](https://github.com/jazcarate/koncierge/workflows/tests/badge.svg)
 
+Evaluating AB testing variants, given an experiment definition and some context.
+
 ## Rationale
 We have a microservice that is in charge of knowing whether a user should be part of an experiment or not,
 and if they are, whether they should be in the control group, or the experiment group.
@@ -15,25 +17,6 @@ We found that knowing if a user participates in an experiment, and it figures ou
 similar concepts, so we came up with the idea of having _"variants all the way"_. So an experiment is really just a variant
 on the world. The same syntax can apply to narrow down the focus of the experiment. A good example of this can be found
 in the [Variant all the way](#variant-all-the-way) example.
-
-## Usage
-The library is divided into two major [_namespaces_](https://en.wikipedia.org/wiki/Kan_extension).
-1. Parse _(Left Kan)_.
-1. Interpret _(Right Kan)_.
-
-A sub-section of the interpretation is also to validate that the given context can be matched to the rules.
-
-### Parser
-A function that takes the full JSON definition of the experiments and transforms it into objects that can be then [interpreted](#interpreter)
-
-### Interpreter
-A function that takes the [parsed](#parser) definition, the context provided, and a [`World`](https://en.wikipedia.org/wiki/Dependency_injection)
-and outputs the list of experiments (and variants) the context is part of
-
-### Context validation
-We validate the context in an interpreter-agnostic way.
-This means that even though semantically, some rules we might never call (see the [Uncalled for](#uncalled-for) example),
-the context will still need to match every possible child rule.
 
 ## Syntax
 We borrowed heavily for [Mongo's query language](https://docs.mongodb.com/manual/tutorial/query-documents/).
@@ -72,6 +55,8 @@ Even though there are both `$and` and `$eq` operators; they are rarely used, as 
 Refer to the [And](#and) example for more information.
 
 ## Examples
+You can play around with different experiments and contexts in our [koncierge playground](https://koncierge-playground.herokuapp.com).
+
 ### Simple
 Everyone is participating in the experiment`EXP001`, and only half of the users (chosen at random) will see the experiment.
 ```json
@@ -84,6 +69,7 @@ Everyone is participating in the experiment`EXP001`, and only half of the users 
     }
 }
 ```
+[Playground](https://koncierge-playground.herokuapp.com/?context=%7B%7D&experiment=%7B%0A%20%20%20%20%22EXP001%22:%20%7B%0A%20%20%20%20%20%20%20%20%22$children%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22participating%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22$rand%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22$gt%22:%200.5%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D,%0A%20%20%20%20%20%20%20%20%20%20%20%20%22control%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22$always%22:%20true%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%7D)
 
 The output for half the user base will be: `EXP001.participating` and `EXP001.control` for the other half.
 
@@ -99,6 +85,7 @@ The output for half the user base will be: `EXP001.participating` and `EXP001.co
     }
 }
 ```
+[Playground](https://koncierge-playground.herokuapp.com/?context=%7B%7D&experiment=%7B%0A%20%20%20%20%22EXP001%22:%20%7B%0A%20%20%20%20%20%20%20%20%22$date%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22$gt%22:%20%222020-01-01%2015:00:00%22%0A%20%20%20%20%20%20%20%20%7D,%0A%20%20%20%20%20%20%20%20%22$children%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22participating%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22$rand%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22$gt%22:%200.5%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D,%0A%20%20%20%20%20%20%20%20%20%20%20%20%22control%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22$always%22:%20true%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%7D)
 
 The output will be the same as the [simple](#simple) example, but only if it is later than the January first 2020.
 
@@ -112,20 +99,8 @@ The output will be the same as the [simple](#simple) example, but only if it is 
     }
 }
 ```
+[Playground](https://koncierge-playground.herokuapp.com/?context=%7B%7D&experiment=%7B%0A%20%20%20%20%22EXP001%22:%20%7B%0A%20%20%20%20%20%20%20%20%22$children%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22never%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22$always%22:%20false%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%7D)
 The output will be `EXP001` even if it has no active child.
-```json
-{
-    "EXP001": {
-        "beta": {
-          "$always":  true,
-          "$not": null
-        }
-    }
-}
-```
-The output will be `EXP001` if the context has a key `beta`, and it is not `null`.
-
-### Exists
 
 ### And
 ```json
@@ -136,7 +111,23 @@ The output will be `EXP001` if the context has a key `beta`, and it is not `null
     }
 }
 ```
+[Playground](https://koncierge-playground.herokuapp.com/?context=%7B%0A%20%20%20%20%22beta%22:%20%22yes%22%0A%7D&experiment=%7B%0A%20%20%20%20%22EXP001%22:%20%7B%0A%20%20%20%20%20%20%20%20%22$date%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22$gt%22:%20%222020-01-01%2015:00:00%22%0A%20%20%20%20%20%20%20%20%7D,%0A%20%20%20%20%20%20%20%20%22beta%22:%20%22yes%22%0A%20%20%20%20%7D%0A%7D)
 The output will be `EXP001` if the context has a key `beta` as `yes` **and** is queried after January first 2020.
+
+
+### Exists
+```json
+{
+    "EXP001": {
+        "beta": {
+            "$always": true,
+            "$not": { "$eq": null }
+        }
+    }
+}
+```
+[Playground](https://koncierge-playground.herokuapp.com/?context=%7B%0A%20%20%20%20%22beta%22:%20null%0A%7D&experiment=%7B%0A%20%20%20%20%22EXP001%22:%20%7B%0A%20%20%20%20%20%20%20%20%22beta%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22$always%22:%20true,%0A%20%20%20%20%20%20%20%20%20%20%20%20%22$not%22:%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22$eq%22:%20null%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%7D)
+The output will be `EXP001` if the context has a key `beta`, and it is not `null`.
 
 ### Uncalled for
 ```json
@@ -149,11 +140,32 @@ The output will be `EXP001` if the context has a key `beta` as `yes` **and** is 
     }
 }
 ```
+[Playground](https://koncierge-playground.herokuapp.com/?context=%7B%0A%20%20%20%20%22beta%22:%20%22yes%22%0A%7D&experiment=%7B%0A%20%20%20%20%22EXP001%22:%20%7B%0A%20%20%20%20%20%20%20%20%22$date%22:%20%7B%20%22$gt%22:%20%222020-01-01%2015:00:00%22%20%7D,%0A%20%20%20%20%20%20%20%20%22beta%22:%20%22yes%22%0A%20%20%20%20%7D%0A%7D)
 
 This will **always** output `EXP001.control`, as we parse children rules sequentially.
 
 ### More examples
-You can check out the `/test` folder for more examples and edge cases.
+You can check out the `/test` folder for more examples and edge cases, as well as playing in the [Playground](https://koncierge-playground.herokuapp.com/)
+
+
+## Usage
+The library is divided into two major [_namespaces_](https://en.wikipedia.org/wiki/Kan_extension).
+1. Parse _(Left Kan)_.
+1. Interpret _(Right Kan)_.
+
+A sub-section of the interpretation is also to validate that the given context can be matched to the rules.
+
+### Parser
+A function that takes the full JSON definition of the experiments and transforms it into objects that can be then [interpreted](#interpreter)
+
+### Interpreter
+A function that takes the [parsed](#parser) definition, the context provided, and a [`World`](https://en.wikipedia.org/wiki/Dependency_injection)
+and outputs the list of experiments (and variants) the context is part of
+
+### Context validation
+We validate the context in an interpreter-agnostic way.
+This means that even though semantically, some rules we might never call (see the [Uncalled for](#uncalled-for) example),
+the context will still need to match every possible child rule.
 
 ## Extras
 ### Date
@@ -169,9 +181,9 @@ Formats with no timezone, we choose the default system timezone. This is not rec
 
 ### Randomness
 Even though `$rand` and `$chaos` might look similar; they differ on the seed for its randomness.
-With `$rand`, any random value generated with the same context, will be the same output.
+With `$rand`, any random value generated with the same context and variant name, will be the same output.
 
-For this reason, most og the times you'll want to narrow down the context before applying `$rand`.
+For this reason, most of the times you'll want to narrow down the context before applying `$rand`.
 For example, given this context:
 ```json
 {
@@ -195,6 +207,9 @@ Every time the `user_id: 3` queries the experiment, the `$rand` value will be th
 
 In contrast, `$chaos` will generate a new value each time, so there is no guarantee in what variant `user_id: 3` will fall.
 
+#### Rolling experiment updates
+As we generate the same number for each context, you can safely update the threshold and rest assured that the minimum
+number of clients will change variants.
 
 ### TODO
 1. Escape the `$` to be able to match to `$` keys, and the `.` in keys to match not-nested keys with `.`

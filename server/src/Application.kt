@@ -32,7 +32,7 @@ fun Application.module() {
     routing {
         get("/") {
             val parameters = call.parameters
-            var example = parameters["context"] to parameters["experiment"]
+            var example = parameters["experiment"] to parameters["context"]
 
             if (example.first === null && example.second === null) {
                 example = experiments.random()

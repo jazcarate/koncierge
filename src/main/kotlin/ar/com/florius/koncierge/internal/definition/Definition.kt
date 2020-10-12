@@ -1,5 +1,7 @@
 package ar.com.florius.koncierge.internal.definition
 
+import com.google.gson.JsonElement
+
 /**
  * Type level data to change a given [ar.com.florius.koncierge.internal.types.Context]
  *
@@ -23,7 +25,7 @@ sealed class Evaluator
 
 data class LessThan(val x: Number) : Evaluator()
 data class GreaterThan(val x: Number) : Evaluator()
-data class Equal(val x: kotlin.Any) : Evaluator()
+data class Equal(val x: JsonElement) : Evaluator()
 data class Always(val value: Boolean) : Evaluator()
 data class And(val evals: List<Evaluator>) : Evaluator()
 data class Or(val evals: List<Evaluator>) : Evaluator()

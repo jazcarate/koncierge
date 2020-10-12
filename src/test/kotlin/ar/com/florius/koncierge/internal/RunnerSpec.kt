@@ -10,7 +10,10 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -32,7 +35,7 @@ class RunnerSpec : ShouldSpec({
                 val experiment = buildExperiment(
                     Bind(
                         Dive("beta"),
-                        Equal("yes")
+                        Equal(JsonPrimitive("yes"))
                     )
                 )
 
@@ -43,7 +46,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             context
-                        ) shouldBe emptyList()
+                        ).shouldNotMatch()
                     }
                 }
 
@@ -54,7 +57,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             context
-                        ) shouldBe listOf(Variant("EXP001"))
+                        ).shouldMatch(Variant("EXP001"))
                     }
 
                     should("valuate to a disabled") {
@@ -63,7 +66,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             context
-                        ) shouldBe emptyList()
+                        ).shouldNotMatch()
                     }
                 }
             }
@@ -72,7 +75,7 @@ class RunnerSpec : ShouldSpec({
                 val experiment = buildExperiment(
                     Bind(
                         Dive("2"),
-                        Equal(30)
+                        Equal(JsonPrimitive(30))
                     )
                 )
 
@@ -82,7 +85,7 @@ class RunnerSpec : ShouldSpec({
                     evaluate(
                         world,
                         context
-                    ) shouldBe listOf(Variant("EXP001"))
+                    ).shouldMatch(Variant("EXP001"))
                 }
 
                 should("fail if not an array") {
@@ -91,7 +94,7 @@ class RunnerSpec : ShouldSpec({
                     evaluate(
                         world,
                         context
-                    ) shouldBe emptyList()
+                    ).shouldNotMatch()
                 }
             }
 
@@ -99,7 +102,7 @@ class RunnerSpec : ShouldSpec({
                 val experiment = buildExperiment(
                     Bind(
                         Dive("foo"),
-                        Equal(30)
+                        Equal(JsonPrimitive(30))
                     )
                 )
 
@@ -109,7 +112,7 @@ class RunnerSpec : ShouldSpec({
                     evaluate(
                         world,
                         context
-                    ) shouldBe emptyList()
+                    ).shouldNotMatch()
                 }
             }
 
@@ -126,7 +129,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe emptyList()
+                        ).shouldNotMatch()
                     }
                 }
 
@@ -142,7 +145,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe listOf(Variant("EXP001"))
+                        ).shouldMatch(Variant("EXP001"))
                     }
                 }
 
@@ -158,7 +161,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe listOf(Variant("EXP001"))
+                        ).shouldMatch(Variant("EXP001"))
                     }
                 }
 
@@ -174,7 +177,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe emptyList()
+                        ).shouldNotMatch()
                     }
                 }
             }
@@ -189,7 +192,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe listOf(experiment.name)
+                        ).shouldMatch(experiment.name)
                     }
                 }
 
@@ -202,7 +205,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe emptyList()
+                        ).shouldNotMatch()
                     }
                 }
             }
@@ -222,7 +225,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe listOf(experiment.name)
+                        ).shouldMatch(experiment.name)
                     }
                 }
 
@@ -240,7 +243,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe emptyList()
+                        ).shouldNotMatch()
                     }
                 }
             }
@@ -260,7 +263,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe emptyList()
+                        ).shouldNotMatch()
                     }
                 }
 
@@ -278,7 +281,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             Context(JsonNull.INSTANCE, experiment)
-                        ) shouldBe listOf(experiment.name)
+                        ).shouldMatch(experiment.name)
                     }
                 }
             }
@@ -300,7 +303,7 @@ class RunnerSpec : ShouldSpec({
                                 evaluate(
                                     world,
                                     context
-                                ) shouldBe emptyList()
+                                ).shouldNotMatch()
                             }
                         }
 
@@ -311,7 +314,7 @@ class RunnerSpec : ShouldSpec({
                                 evaluate(
                                     world,
                                     context
-                                ) shouldBe listOf(experiment.name)
+                                ).shouldMatch(experiment.name)
                             }
                         }
                     }
@@ -324,7 +327,7 @@ class RunnerSpec : ShouldSpec({
                                 evaluate(
                                     world,
                                     context
-                                ) shouldBe emptyList()
+                                ).shouldNotMatch()
                             }
                         }
 
@@ -335,7 +338,7 @@ class RunnerSpec : ShouldSpec({
                                 evaluate(
                                     world,
                                     context
-                                ) shouldBe listOf(experiment.name)
+                                ).shouldMatch(experiment.name)
                             }
                         }
                     }
@@ -348,7 +351,7 @@ class RunnerSpec : ShouldSpec({
                                 evaluate(
                                     world,
                                     context
-                                ) shouldBe emptyList()
+                                ).shouldNotMatch()
                             }
                         }
 
@@ -359,7 +362,7 @@ class RunnerSpec : ShouldSpec({
                                 evaluate(
                                     world,
                                     context
-                                ) shouldBe listOf(experiment.name)
+                                ).shouldMatch(experiment.name)
                             }
                         }
                     }
@@ -371,7 +374,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe emptyList()
+                            ).shouldNotMatch()
                         }
                     }
 
@@ -382,7 +385,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe emptyList()
+                            ).shouldNotMatch()
                         }
                     }
                 }
@@ -392,7 +395,11 @@ class RunnerSpec : ShouldSpec({
                 val experiment = buildExperiment(
                     Bind(
                         Random,
-                        Equal(0.0015799436F) // Generated once for `null` context and EXP001
+                        Equal(
+                            JsonPrimitive(
+                                0.09776043
+                            )
+                        ) // Generated once for `null` context and EXP001
                     )
                 )
 
@@ -403,7 +410,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             context
-                        ) shouldBe listOf(experiment.name)
+                        ).shouldMatch(experiment.name)
                     }
                 }
 
@@ -414,7 +421,7 @@ class RunnerSpec : ShouldSpec({
                         evaluate(
                             world,
                             context
-                        ) shouldBe emptyList()
+                        ).shouldNotMatch()
                     }
                 }
 
@@ -426,20 +433,21 @@ class RunnerSpec : ShouldSpec({
                             val res1 = evaluate(world, context)
                             val res2 = evaluate(world, context)
 
-                            res1 shouldBe listOf(experiment.name)
-                            res1 shouldBe res2
+                            res1.shouldMatch(experiment.name)
+                            res2.shouldMatch(experiment.name)
                         }
                     }
 
                     context("with different experiments") {
-                        val otherExperiment = context.copy(experiment = experiment.copy(name = Variant("EXP002")))
+                        val otherExperiment =
+                            context.copy(experiment = experiment.copy(name = Variant("Something different")))
 
                         should("yield the different result") {
                             val res1 = evaluate(world, context)
                             val res2 = evaluate(world, otherExperiment)
 
-                            res1 shouldBe listOf(experiment.name)
-                            res2 shouldBe emptyList()
+                            res1.shouldContainExactly(experiment.name)
+                            res2.shouldNotMatch()
                         }
                     }
                 }
@@ -460,33 +468,33 @@ class RunnerSpec : ShouldSpec({
                     val res2 = evaluate(world, Context(JsonNull.INSTANCE, experiment))
 
 
-                    res1 shouldBe listOf(experiment.name)
-                    res2 shouldBe emptyList()
+                    res1.shouldMatch(experiment.name)
+                    res2.shouldNotMatch()
                 }
             }
 
             context("experiment with an not") {
                 val experiment = buildExperiment(
-                    Not(Equal("yes"))
+                    Not(Equal(JsonPrimitive("yes")))
                 )
 
                 should("negates the predicate, matching") {
                     evaluate(
                         world, Context(JsonNull.INSTANCE, experiment)
-                    ) shouldBe listOf(experiment.name)
+                    ).shouldMatch(experiment.name)
                 }
 
                 should("negates the predicate, not matching") {
                     evaluate(
                         world, Context(JsonPrimitive("yes"), experiment)
-                    ) shouldBe emptyList()
+                    ).shouldNotMatch()
                 }
             }
 
             context("experiment with an compose") {
                 context("a compose of dives") {
                     val experiment = buildExperiment(
-                        Bind(Dive("foo"), Bind(Dive("bar"), Equal("yes")))
+                        Bind(Dive("foo"), Bind(Dive("bar"), Equal(JsonPrimitive("yes"))))
                     )
 
                     context("an empty context") {
@@ -496,7 +504,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe emptyList()
+                            ).shouldNotMatch()
                         }
                     }
 
@@ -507,7 +515,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe emptyList()
+                            ).shouldNotMatch()
                         }
                     }
 
@@ -520,7 +528,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe listOf(experiment.name)
+                            ).shouldMatch(experiment.name)
                         }
                     }
                 }
@@ -529,7 +537,7 @@ class RunnerSpec : ShouldSpec({
             context("contexts with an any") {
                 val experiment = buildExperiment(
                     Any(
-                        Equal(3)
+                        Equal(JsonPrimitive(3))
                     )
                 )
 
@@ -544,7 +552,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe listOf(experiment.name)
+                            ).shouldMatch(experiment.name)
                         }
                     }
 
@@ -558,7 +566,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe emptyList()
+                            ).shouldNotMatch()
                         }
                     }
 
@@ -569,7 +577,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe emptyList()
+                            ).shouldNotMatch()
                         }
                     }
                 }
@@ -581,7 +589,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 Context(JsonPrimitive(3), experiment),
-                            ) shouldBe emptyList()
+                            ).shouldNotMatch()
                         }
                     }
                 }
@@ -597,7 +605,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe listOf(experiment.name)
+                            ).shouldMatch(experiment.name)
                         }
                     }
 
@@ -611,7 +619,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe emptyList()
+                            ).shouldNotMatch()
                         }
                     }
 
@@ -622,7 +630,7 @@ class RunnerSpec : ShouldSpec({
                             evaluate(
                                 world,
                                 context
-                            ) shouldBe emptyList()
+                            ).shouldNotMatch()
                         }
                     }
                 }
@@ -652,7 +660,7 @@ class RunnerSpec : ShouldSpec({
                     evaluate(
                         world,
                         Context(JsonNull.INSTANCE, experiment)
-                    ) shouldBe listOf(experiment.name, matchingVariant.name)
+                    ).shouldMatch(experiment.name, matchingVariant.name)
                 }
             }
 
@@ -678,7 +686,7 @@ class RunnerSpec : ShouldSpec({
                     evaluate(
                         world,
                         Context(JsonNull.INSTANCE, experiment)
-                    ) shouldBe listOf(experiment.name, firstMatchingVariant.name)
+                    ).shouldMatch(experiment.name, firstMatchingVariant.name)
                 }
             }
 
@@ -699,30 +707,41 @@ class RunnerSpec : ShouldSpec({
                     evaluate(
                         world,
                         Context(JsonNull.INSTANCE, experiment)
-                    ) shouldBe listOf(experiment.name)
+                    ).shouldMatch(experiment.name)
                 }
             }
 
             context("parent doesn't match") {
-                val matching = Experiment(
-                    Variant("control"),
-                    Always(true),
-                    emptyList()
-                )
 
                 val experiment = Experiment(
                     Variant("EXP001"),
                     Always(false),
-                    listOf(matching)
+                    listOf(
+                        Experiment(
+                            Variant("control"),
+                            Always(true),
+                            emptyList()
+                        )
+                    )
                 )
 
                 should("does not match the whole experiment") {
                     evaluate(
                         world,
                         Context(JsonNull.INSTANCE, experiment)
-                    ) shouldBe emptyList()
+                    ).shouldNotMatch()
                 }
             }
         }
     }
 })
+
+private fun <T> List<T>.shouldMatch(vararg expected: T) {
+    return this.shouldBe(expected)
+}
+
+private fun List<Variant>.shouldNotMatch() {
+    return withClue("The experiments should be empty") {
+        this.shouldBeEmpty()
+    }
+}

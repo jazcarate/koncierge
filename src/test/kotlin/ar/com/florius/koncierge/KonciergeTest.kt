@@ -43,7 +43,7 @@ class KonciergeTest : ShouldSpec({
                 should("be able to compute the experiments") {
                     val result = koncierge.evaluate(experiment, "{}").toMatrix()
 
-                    result shouldBe listOf(listOf("EXP001", "control"))
+                    result shouldBe listOf(listOf("EXP001", "participating"))
                 }
             }
         }

@@ -89,7 +89,6 @@ a:hover {
 
 .example {
     text-align: left;
-    font-size: 0.6em;
 }
 
 .example blockquote {
@@ -97,6 +96,10 @@ a:hover {
     line-height: 1.8em;
     margin: 1.1em -4em;
     padding: 1em 2em;
+}
+
+.example code pre {
+    line-height: 1.5em;
 }
 
 .highlight-1, .highlight-2, .highlight-3 {

@@ -36,12 +36,12 @@ inline class EvalError(val s: String)
  */
 fun evaluate(world: World, context: Context): List<Variant> {
     val one = activeOne(world, context)
-    val selected =
-        context.experiment.children
+    return one.fold({ emptyList() }, { parent ->
+        listOf(parent) + (context.experiment.children
             .map { activeOne(world, context.copy(experiment = it)) }
             .mapNotNull { it.orNull() }
-            .firstOrNull()
-    return one.fold({ emptyList() }, { listOf(it) }) + (selected?.let { listOf(it) } ?: emptyList())
+            .firstOrNull()?.let { listOf(it) } ?: emptyList())
+    })
 }
 
 private fun activeOne(
@@ -59,7 +59,7 @@ private fun evaluateOne(world: World, context: Context, condition: Evaluator): E
     return when (condition) {
         is LessThan -> compare(context) { a -> condition.x > a }
         is GreaterThan -> compare(context) { a -> condition.x < a }
-        is Equal -> (gson().toJsonTree(condition.x) == context.element).right()
+        is Equal -> (condition.x.toString() == context.element.toString()).right()
         is Not -> evaluateOne(world, context, condition.inner).map { it.not() }
         is Always -> condition.value.right()
         is And -> many(world, context, condition.evals, ::and)
@@ -145,8 +145,11 @@ private fun size(element: JsonElement): Either<String, Number> {
 }
 
 private fun hash(element: JsonElement, experiment: Experiment): Float {
-    return (gson().toJson(element) + experiment.name.unVariant)
-        .hashCode().absoluteValue.toFloat() / Int.MAX_VALUE
+    return smear(gson().toJson(element) + experiment.name.unVariant) / Int.MAX_VALUE
+}
+
+fun smear(s: String): Float {
+    return (0x1b873593 * Integer.rotateLeft(((s.hashCode() * 0xcc9e2d51).toInt()), 15)).absoluteValue.toFloat()
 }
 
 private fun dive(key: String, elem: JsonElement): Either<String, JsonElement> {

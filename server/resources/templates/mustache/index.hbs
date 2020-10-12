@@ -24,18 +24,20 @@
 <div class="wrapper">
     <div class="aligner">
         <nav>
-            <span class="title">koncierge 🛎</span>
+            <a href="https://koncierge.florius.com.ar/"><span class="title">koncierge 🛎</span></a>
             <span class="tagline">:: Playground</span>
         </nav>
 
         <div class="item">
             <form onsubmit="return runEval(event);" method="post" action="/api/eval">
                 <div class="json-area">
+                    <h3>Experiment definition</h3>
                     <textarea id="experiment" rows="10" cols="60">{{experiment}}</textarea>
                     <button type="button" onclick="pretty('experiment')">Beautify</button>
                 </div>
 
                 <div class="json-area">
+                    <h3>Context</h3>
                     <textarea id="context" rows="10" cols="60">{{context}}</textarea>
                     <button type="button" onclick="pretty('context')">Beautify</button>
                 </div>
